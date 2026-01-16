@@ -1,0 +1,28 @@
+endpoint: https://192.168.91.1/
+password: REPLACEME
+debug: true
+refresh-interval: 30
+collection-interval: 30
+ui-refresh-interval: 30
+log-level: debug
+listen: :8080
+storage:
+  path: /data
+  retention: 0s
+  partition: 168h
+dashboards:
+  - name: Main Overview
+    timeframe: 24h
+    panels:
+      - name: current-power-flow
+      - name: power-flow
+      - name: monthly-analytics
+      - name: battery-level
+      - name: string-voltage
+      - name: string-current
+      - name: string-power
+      - name: inverter-power
+      - name: grid-voltage
+      - name: grid-frequency
+      - name: system-alerts
+      - name: yearly-analytics

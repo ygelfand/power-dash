@@ -1,0 +1,47 @@
+.link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.tagline {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.logo {
+  flex-shrink: 0;
+}
+
+.scrolledLogo {
+  box-shadow: var(--mantine-shadow-md);
+  border: 2px solid light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4)) !important;
+}
+
+.title {
+  margin: 0;
+}
+
+.headerInfo {
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.headerInfoVisible {
+  opacity: 1;
+  max-width: 300px;
+}
+
+.headerInfoHidden {
+  opacity: 0;
+  max-width: 0;
+}
+
+.chartPlaceholder {
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-6));
+  margin-top: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+}

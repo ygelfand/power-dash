@@ -1,0 +1,26 @@
+# Local development data and temporary files
+data/
+tmp/
+*.log
+.DS_Store
+
+# Build artifacts
+bin/
+web/dist/
+web/node_modules/
+internal/ui/dist/
+Dockerfile
+
+# Git and CI/CD
+.git/
+.github/
+.gitignore
+.dockerignore
+.goreleaser.yaml
+
+# Go specific
+vendor/
+pkg/
+
+# Node specific
+web/npm-debug.log

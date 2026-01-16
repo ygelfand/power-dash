@@ -1,0 +1,341 @@
+.panel {
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-7)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.panel.interactive:hover {
+  cursor: pointer;
+  border-color: var(--mantine-color-blue-5);
+}
+
+.subPanel {
+  padding: var(--mantine-spacing-xs);
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  position: relative;
+}
+
+.subPanel.interactive:hover {
+  cursor: pointer;
+  border-color: var(--mantine-color-blue-5) !important;
+}
+
+.header {
+  padding: 4px var(--mantine-spacing-sm);
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-6));
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 36px;
+}
+
+.title {
+  font-weight: 600;
+  font-size: var(--mantine-font-size-xs);
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-3));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.content {
+  flex-grow: 1;
+  padding: var(--mantine-spacing-xs);
+  min-height: 200px;
+  position: relative;
+}
+
+.tooltip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: light-dark(
+    rgba(255, 255, 255, 0.95),
+    rgba(26, 27, 30, 0.95)
+  );
+  padding: 4px 8px;
+  border-radius: var(--mantine-radius-sm);
+  border: 1px solid var(--mantine-color-blue-5);
+  pointer-events: none;
+  z-index: 100;
+  font-size: var(--mantine-font-size-xs);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: var(--mantine-shadow-md);
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.tooltipZoomed {
+}
+
+.resetZoom {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 110;
+  box-shadow: var(--mantine-shadow-sm);
+  background-color: light-dark(
+    rgba(255, 255, 255, 0.8),
+    rgba(26, 27, 30, 0.8)
+  ) !important;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.resetZoom:hover {
+  transform: scale(1.1);
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-6)
+  ) !important;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.legendColor {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.segmentedControlRoot {
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  padding: 2px;
+}
+
+.segmentedControlIndicator {
+  background-color: light-dark(
+    var(--mantine-color-white),
+    var(--mantine-color-dark-4)
+  );
+  box-shadow: light-dark(var(--mantine-shadow-xs), none);
+}
+
+.segmentedControlLabel {
+  font-weight: 700;
+  color: light-dark(var(--mantine-color-gray-7), var(--mantine-color-gray-2));
+}
+
+.segmentedControlLabel[data-active] {
+  color: light-dark(var(--mantine-color-blue-7), var(--mantine-color-white));
+}
+
+.actionIconZoomed {
+  border: 1px solid
+    light-dark(var(--mantine-color-blue-7), var(--mantine-color-blue-4));
+}
+
+.flexGrow {
+  flex-grow: 1;
+}
+
+.overflowAnchorNone {
+  overflow-anchor: none;
+}
+
+.chartContainer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.tooltipTitle {
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.actionIconDetail {
+  border: 2px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.flowNode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  transition: transform 0.2s ease;
+}
+
+.flowNode:hover {
+  transform: translateY(-5px);
+}
+
+.flowPath {
+  fill: none;
+  stroke: var(--mantine-color-gray-3);
+  stroke-width: 4;
+  stroke-linecap: round;
+  z-index: 1;
+}
+
+.flowAnimation {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-dasharray: 10, 15;
+  animation: flow 2s linear infinite;
+}
+
+@keyframes flow {
+  from {
+    stroke-dashoffset: 50;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.reverseFlow {
+  animation-direction: reverse;
+}
+
+.sidebarLegend {
+  width: 250px;
+  padding-left: var(--mantine-spacing-sm);
+  border-left: 1px solid
+    light-dark(var(--mantine-color-gray-2), var(--mantine-color-dark-4));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.legendRow {
+  padding: 4px 8px;
+  border-radius: var(--mantine-radius-xs);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.legendRow:hover {
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-6)
+  );
+  border-color: light-dark(
+    var(--mantine-color-gray-2),
+    var(--mantine-color-dark-4)
+  );
+}
+
+.legendRowHidden {
+  opacity: 0.5;
+}
+
+.legendHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.legendStats {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+:global(.u-select) {
+  background-color: light-dark(
+    rgba(0, 0, 0, 0.1),
+    rgba(255, 255, 255, 0.25)
+  ) !important;
+  border: 1px solid light-dark(rgba(0, 0, 0, 0.2), rgba(255, 255, 255, 0.5)) !important;
+}
+
+.ganttContainer {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(150px, max-content) 1fr;
+  min-width: 100%;
+}
+
+.ganttHeader {
+  grid-column: 2;
+  position: relative;
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.ganttTick {
+  position: absolute;
+  transform: translateX(-50%);
+  top: 0;
+  white-space: nowrap;
+}
+
+.ganttLabelCell {
+  display: flex;
+  align-items: center;
+  padding-right: var(--mantine-spacing-xs);
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.ganttTrackCell {
+  position: relative;
+  border-bottom: 1px solid
+    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+  border-left: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+}
+
+.ganttGridLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed
+    light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-6));
+}
+
+.ganttBar {
+  position: absolute;
+  height: 16px;
+  top: 4px;
+  border-radius: var(--mantine-radius-xs);
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.ganttBar:hover {
+  opacity: 1;
+}
