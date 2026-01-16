@@ -366,19 +366,31 @@
 }
 
 .navPageIndicator {
-  min-width: 40px;
+  min-width: 44px;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 4px;
+  padding: 0 6px;
+  background-color: light-dark(
+    var(--mantine-color-gray-0),
+    var(--mantine-color-dark-8)
+  );
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.navPageText {
+  font-family: var(--mantine-font-family-monospace);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .navPageLive {
-  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
-  font-size: 10px !important;
+  color: var(--mantine-color-teal-6);
+  font-size: 9px !important;
   letter-spacing: 0.5px;
 }
 
 .navPageActive {
   color: var(--mantine-color-blue-6);
+  font-size: 11px !important;
 }

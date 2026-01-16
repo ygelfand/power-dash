@@ -24,5 +24,7 @@ dashboards:
       - name: inverter-power
       - name: grid-voltage
       - name: grid-frequency
+      - name: fan-speed
+      - name: temperatures
       - name: system-alerts
       - name: yearly-analytics

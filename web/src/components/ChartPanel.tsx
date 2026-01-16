@@ -211,19 +211,16 @@ export function ChartPanel({
                 <IconChevronLeft size={14} />
               </ActionIcon>
 
-              <div className={classes.navPageIndicator}>
-                <Text
-                  size="xs"
-                  fw={800}
-                  className={
-                    pageOffset > 0 ? classes.navPageActive : classes.navPageLive
-                  }
-                >
-                  {pageOffset > 0 ? `-${pageOffset}` : "LIVE"}
-                </Text>
-              </div>
-
-              <ActionIcon
+                              <div className={classes.navPageIndicator}>
+                                <Text
+                                  className={`${classes.navPageText} ${
+                                    pageOffset > 0 ? classes.navPageActive : classes.navPageLive
+                                  }`}
+                                >
+                                  {pageOffset > 0 ? `-${pageOffset}` : "LIVE"}
+                                </Text>
+                              </div>
+                            <ActionIcon
                 variant="default"
                 size="sm"
                 onClick={handleNext}

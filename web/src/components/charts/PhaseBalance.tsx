@@ -32,7 +32,7 @@ export function PhaseBalance({
   };
 
   const metrics = [
-    { name: "power_watts", label: "L1", tags: { site: "load", phase: "1" } },
+    { name: "power_watts", label: "L1", tags: { site: "load", phase: "0" } },
     { name: "power_watts", label: "L2", tags: { site: "load", phase: "2" } },
   ];
   const { chartData, loading } = useChartData(
