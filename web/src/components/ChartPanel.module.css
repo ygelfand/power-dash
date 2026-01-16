@@ -339,3 +339,46 @@
 .ganttBar:hover {
   opacity: 1;
 }
+
+.navGroup {
+  border: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
+  border-radius: var(--mantine-radius-sm);
+  background-color: light-dark(
+    var(--mantine-color-gray-1),
+    var(--mantine-color-dark-6)
+  );
+  overflow: hidden;
+}
+
+.navButtonLeft {
+  border: none !important;
+  border-radius: 0 !important;
+  border-right: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)) !important;
+}
+
+.navButtonRight {
+  border: none !important;
+  border-radius: 0 !important;
+  border-left: 1px solid
+    light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4)) !important;
+}
+
+.navPageIndicator {
+  min-width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 4px;
+}
+
+.navPageLive {
+  color: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-3));
+  font-size: 10px !important;
+  letter-spacing: 0.5px;
+}
+
+.navPageActive {
+  color: var(--mantine-color-blue-6);
+}
