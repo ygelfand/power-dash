@@ -17,6 +17,7 @@ export function YearlyAnalytics({
   onZoom,
 }: ChartComponentProps) {
   const [loading, setLoading] = useState(true);
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
   const [chartData, setChartData] = useState<
     [number[], ...number[][]] | undefined
   >();
@@ -25,9 +26,20 @@ export function YearlyAnalytics({
 
   useEffect(() => {
     const fetchData = async () => {
-      // Align to UTC midnight to match backend's floor(ts/86400)*86400 logic
-      const end = Math.floor(Date.now() / 1000 / 86400) * 86400 + 86400;
-      const start = end - 86400 * 365;
+      let start: number, end: number;
+      let queryStep = 86400;
+
+      if (zoomRange) {
+        [start, end] = zoomRange;
+        const duration = end - start;
+        if (duration < 86400 * 30) {
+          queryStep = 3600;
+        }
+      } else {
+        // Align to UTC midnight to match backend's floor(ts/86400)*86400 logic
+        end = Math.floor(Date.now() / 1000 / 86400) * 86400 + 86400;
+        start = end - 86400 * 365;
+      }
 
       const metrics = [
         { name: "power_watts", label: "Solar", tags: { site: "solar" } },
@@ -47,23 +59,34 @@ export function YearlyAnalytics({
       try {
         const results = await batchQueryMetrics(
           metrics,
-          start,
-          end,
-          86400,
+          Math.floor(start),
+          Math.ceil(end),
+          queryStep,
           "sum",
         );
 
         Object.keys(results).forEach((key) => {
           results[key] = results[key].map((p) => ({
             ...p,
-            Value: p.Value / 60,
+            Value: p.Value / (queryStep === 86400 ? 60 : 1),
           }));
         });
 
-        // Generate continuous daily timestamps for the last 365 days
-        const fullTs: number[] = [];
-        for (let t = start; t < end; t += 86400) {
-          fullTs.push(t);
+        // For non-daily view, we might want to just align timestamps normally
+        let finalTs: number[];
+        if (queryStep === 86400) {
+          finalTs = [];
+          for (let t = Math.floor(start); t < end; t += 86400) {
+            finalTs.push(t);
+          }
+        } else {
+          finalTs = Array.from(
+            new Set(
+              Object.values(results).flatMap((pts) =>
+                pts.map((p) => p.Timestamp),
+              ),
+            ),
+          ).sort((a, b) => a - b);
         }
 
         const solarMap = new Map(
@@ -79,8 +102,7 @@ export function YearlyAnalytics({
           (results["Grid To"] || []).map((p) => [p.Timestamp, p.Value]),
         );
 
-        // Grid Usage = Import - Export
-        const gridData = fullTs.map((ts) => {
+        const gridData = finalTs.map((ts) => {
           const from = gridFromMap.get(ts);
           const to = gridToMap.get(ts);
           if (from === undefined && to === undefined) return null;
@@ -88,9 +110,9 @@ export function YearlyAnalytics({
         });
 
         setChartData([
-          fullTs,
-          fullTs.map((ts) => solarMap.get(ts) ?? null),
-          fullTs.map((ts) => homeMap.get(ts) ?? null),
+          finalTs,
+          finalTs.map((ts) => solarMap.get(ts) ?? null),
+          finalTs.map((ts) => homeMap.get(ts) ?? null),
           gridData,
         ] as [number[], ...number[][]] | undefined);
       } catch (e) {
@@ -103,7 +125,7 @@ export function YearlyAnalytics({
     fetchData();
     const interval = setInterval(fetchData, 60000 * 60); // Refresh every hour
     return () => clearInterval(interval);
-  }, []);
+  }, [zoomRange]);
 
   if (loading)
     return (
@@ -123,12 +145,16 @@ export function YearlyAnalytics({
       title={panel.title}
       series={series}
       data={chartData}
-      onClick={() => onClick?.({ timeframe: activeTf })}
+      onClick={() => onClick?.({ timeframe: activeTf, zoom: zoomRange || undefined })}
       timeframe={activeTf}
       height={height}
       tooltipFormat="date"
       fixedTimeframe={true}
-      onZoom={onZoom}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
+      zoomRange={zoomRange}
       spanGaps={false}
     />
   );

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ChartPanel } from '../ChartPanel';
 import { useChartData, useDynamicColor, useSyncedTimeframe } from '../../utils';
 import type { ChartComponentProps } from '../../data';
@@ -10,11 +11,13 @@ export const SolarEfficiencyDefaults = {
     params: { timeframe: "24h" }
 };
 
-export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend, onTimeframeChange }: ChartComponentProps) {
+export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend, onTimeframeChange, onZoom }: ChartComponentProps) {
+    const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
     const [localTf, setLocalTf] = useSyncedTimeframe(timeframe, panel.params?.timeframe);
 
     const handleTfChange = (val: string) => {
         setLocalTf(val);
+        setZoomRange(null);
         onTimeframeChange?.(val);
     };
 
@@ -23,7 +26,14 @@ export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend,
         { name: 'solar_voltage_volts', label: 'Voltage', all: true },
         { name: 'solar_current_amps', label: 'Current', all: true },
     ];
-    const { chartData, rawResults, loading } = useChartData(metrics, localTf);
+    const { chartData, rawResults, loading } = useChartData(
+        metrics, 
+        localTf, 
+        undefined, 
+        undefined, 
+        undefined, 
+        zoomRange
+    );
 
     if (loading) return <Center h={height}><Loader size="sm" /></Center>;
 
@@ -36,5 +46,19 @@ export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend,
         };
     });
 
-    return <ChartPanel title={panel.title} series={series} data={chartData} onClick={onClick} timeframe={localTf} onTimeframeChange={handleTfChange} height={height} showLegend={showLegend} />;
+    return <ChartPanel 
+        title={panel.title} 
+        series={series} 
+        data={chartData} 
+        onClick={onClick} 
+        timeframe={localTf} 
+        onTimeframeChange={handleTfChange} 
+        onZoom={(z, range) => {
+            setZoomRange(z && range ? range : null);
+            onZoom?.(z);
+        }}
+        height={height} 
+        showLegend={showLegend} 
+        zoomRange={zoomRange}
+    />;
 }

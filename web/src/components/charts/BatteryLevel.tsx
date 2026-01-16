@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ChartPanel } from "../ChartPanel";
-import { useChartData, useDynamicColor } from "../../utils";
+import { useChartData, useDynamicColor, useSyncedTimeframe } from "../../utils";
 import type { ChartComponentProps } from "../../data";
 
 export const BatteryLevelDefaults = {
@@ -18,15 +18,15 @@ export function BatteryLevel({
   onTimeframeChange,
   onZoom,
 }: ChartComponentProps) {
-  const [localTf, setLocalTf] = useState(panel.params?.timeframe || timeframe);
-
-  // Sync external timeframe changes
-  useEffect(() => {
-    setLocalTf(timeframe);
-  }, [timeframe]);
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
+  const [localTf, setLocalTf] = useSyncedTimeframe(
+    timeframe,
+    panel.params?.timeframe,
+  );
 
   const handleTfChange = (val: string) => {
     setLocalTf(val);
+    setZoomRange(null);
     onTimeframeChange?.(val);
   };
 
@@ -46,7 +46,14 @@ export function BatteryLevel({
     },
   ];
 
-  const { chartData, rawResults, loading } = useChartData(metrics, localTf);
+  const { chartData, rawResults, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
   const series: any[] = [];
   const remainingKeys = Object.keys(rawResults)
     .filter((k) => k.includes("Remaining"))
@@ -77,10 +84,14 @@ export function BatteryLevel({
       onClick={onClick}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}
-      onZoom={onZoom}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
       height={height}
       showLegend={showLegend}
       loading={loading}
+      zoomRange={zoomRange}
     />
   );
 }

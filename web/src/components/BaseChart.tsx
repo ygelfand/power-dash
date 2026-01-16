@@ -105,7 +105,10 @@ export function BaseChart({
   // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   useEffect(() => {
-    const interval = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 30000);
+    const interval = setInterval(
+      () => setNow(Math.floor(Date.now() / 1000)),
+      30000,
+    );
     return () => clearInterval(interval);
   }, []);
 
@@ -118,8 +121,9 @@ export function BaseChart({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const [hiddenSeries, setHiddenSeries] = useState<Set<string>>(new Set());
   const [visibleRange, setVisibleRange] = useState<[number, number] | null>(
-    null,
+    zoomRange || null,
   );
+  const visibleRangeRef = useRef<[number, number] | null>(zoomRange || null);
   const lastIdx = useRef<number | null>(null);
 
   // Synchronous state refs to prevent race conditions during interaction/re-renders
@@ -127,27 +131,31 @@ export function BaseChart({
   const timeframeRef = useRef(timeframe);
   const zoomRangeRef = useRef(zoomRange);
 
-  // Sync refs with props
+  // Sync refs immediately during render
+  isZoomedRef.current = isZoomed;
+  timeframeRef.current = timeframe;
+  zoomRangeRef.current = zoomRange;
+
+  // If zoom is disabled from outside, clear our internal tracking
   useEffect(() => {
-    isZoomedRef.current = isZoomed;
+    if (!isZoomed) {
+      setVisibleRange(null);
+      visibleRangeRef.current = null;
+    }
   }, [isZoomed]);
 
+  // If we have a zoomRange prop change, update internal range
   useEffect(() => {
-    timeframeRef.current = timeframe;
-  }, [timeframe]);
-
-  useEffect(() => {
-    zoomRangeRef.current = zoomRange;
-  }, [zoomRange]);
+    if (zoomRange) {
+      setVisibleRange(zoomRange);
+      visibleRangeRef.current = zoomRange;
+    }
+  }, [JSON.stringify(zoomRange)]);
 
   const onCreateRef = useRef(onCreate);
   const onZoomRef = useRef(onZoom);
-  useEffect(() => {
-    onCreateRef.current = onCreate;
-  }, [onCreate]);
-  useEffect(() => {
-    onZoomRef.current = onZoom;
-  }, [onZoom]);
+  onCreateRef.current = onCreate;
+  onZoomRef.current = onZoom;
 
   const _setIsZoomed = (v: boolean) => {
     isZoomedRef.current = v;
@@ -222,7 +230,9 @@ export function BaseChart({
 
   const uniqueUnits = useMemo(
     () =>
-      Array.from(new Set(series.map((s) => s.unit).filter(Boolean))) as string[],
+      Array.from(
+        new Set(series.map((s) => s.unit).filter(Boolean)),
+      ) as string[],
     [series],
   );
 
@@ -272,13 +282,14 @@ export function BaseChart({
       x: {
         time: true,
         range: (_u, _dataMin, dataMax) => {
-            if (isZoomedRef.current && visibleRange) return visibleRange;
-            if (zoomRangeRef.current) return zoomRangeRef.current;
+          if (isZoomedRef.current && visibleRangeRef.current)
+            return visibleRangeRef.current;
+          if (zoomRangeRef.current) return zoomRangeRef.current;
 
-            const duration = parseTimeframe(timeframeRef.current);
-            const end = Math.max(Math.floor(Date.now() / 1000), dataMax || 0);
-            return [end - duration, end];
-        }
+          const duration = parseTimeframe(timeframeRef.current);
+          const end = Math.max(Math.floor(Date.now() / 1000), dataMax || 0);
+          return [end - duration, end];
+        },
       },
     };
 
@@ -344,7 +355,8 @@ export function BaseChart({
                 const xOffset = left + 20;
                 let yOffset = top - tooltipHeight - 10;
                 if (yOffset < 0) yOffset = top + 20;
-                const finalX = xOffset + 220 > chartWidth ? left - 230 : xOffset;
+                const finalX =
+                  xOffset + 220 > chartWidth ? left - 230 : xOffset;
                 tooltipRef.current.style.transform = `translate(${finalX}px, ${yOffset}px)`;
               }
 
@@ -383,29 +395,24 @@ export function BaseChart({
             }
           },
         ],
-        setScale: [
-          (u, key) => {
-            if (key === "x") {
-              const { min, max } = u.scales.x;
-              if (min != null && max != null) {
-                setVisibleRange([min, max]);
-              }
-            }
-          },
-        ],
         setSelect: [
           (u) => {
             if (u.select.width > 0) {
               const min = u.posToVal(u.select.left, "x") as number;
-              const max = u.posToVal(u.select.left + u.select.width, "x") as number;
+              const max = u.posToVal(
+                u.select.left + u.select.width,
+                "x",
+              ) as number;
 
               // Immediately lock the source of truth ref
+              const newRange: [number, number] = [min, max];
+              visibleRangeRef.current = newRange;
+              setVisibleRange(newRange);
               isZoomedRef.current = true;
-
               u.setScale("x", { min, max });
               u.setSelect({ width: 0, height: 0, top: 0, left: 0 }, true);
               _setIsZoomed(true);
-              onZoomRef.current?.(true, [min, max]);
+              onZoomRef.current?.(true, newRange);
             }
           },
         ],
@@ -491,7 +498,9 @@ export function BaseChart({
                   <div className={classes.legendHeader}>
                     <div
                       className={classes.legendColor}
-                      style={{ backgroundColor: isHidden ? "#adb5bd" : s.color }}
+                      style={{
+                        backgroundColor: isHidden ? "#adb5bd" : s.color,
+                      }}
                     />
                     <Text size="xs" fw={700} truncate>
                       {s.name}
@@ -557,3 +566,4 @@ export function BaseChart({
     </Box>
   );
 }
+

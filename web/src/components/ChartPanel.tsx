@@ -1,11 +1,17 @@
-import { ActionIcon, Group, SegmentedControl, Badge, LoadingOverlay } from '@mantine/core';
-import { IconRotateClockwise2 } from '@tabler/icons-react';
-import { useRef, useState, useEffect } from 'react';
-import uPlot from 'uplot';
-import { BaseChart } from './BaseChart';
-import { Panel } from './Panel';
-import { parseTimeframe } from '../utils';
-import classes from './ChartPanel.module.css';
+import {
+  ActionIcon,
+  Group,
+  SegmentedControl,
+  Badge,
+  LoadingOverlay,
+} from "@mantine/core";
+import { IconRotateClockwise2 } from "@tabler/icons-react";
+import { useRef, useState, useEffect } from "react";
+import uPlot from "uplot";
+import { BaseChart } from "./BaseChart";
+import { Panel } from "./Panel";
+import { parseTimeframe } from "../utils";
+import classes from "./ChartPanel.module.css";
 
 interface ChartPanelSeries {
   name: string;
@@ -16,11 +22,11 @@ interface ChartPanelSeries {
 interface ChartPanelProps {
   title: string;
   data?: [number[], ...number[][]];
-  onClick?: (state: { timeframe: string, zoom?: [number, number] }) => void;
+  onClick?: (state: { timeframe: string; zoom?: [number, number] }) => void;
   series: ChartPanelSeries[];
   timeframe: string;
   height?: number;
-  tooltipFormat?: 'date' | 'datetime';
+  tooltipFormat?: "date" | "datetime";
   convertFunc?: (val: number) => number;
   onTimeframeChange?: (tf: string) => void;
   onZoom?: (isZoomed: boolean, range?: [number, number]) => void;
@@ -32,23 +38,23 @@ interface ChartPanelProps {
   spanGaps?: boolean;
 }
 
-export function ChartPanel({ 
-    title, 
-    onClick, 
-    data, 
-    series, 
-    timeframe: initialTimeframe, 
-    height, 
-    tooltipFormat, 
-    convertFunc,
-    onTimeframeChange,
-    onZoom,
-    fixedTimeframe = false,
-    showLegend = false,
-    loading = false,
-    zoomRange,
-    autoScale = false,
-    spanGaps
+export function ChartPanel({
+  title,
+  onClick,
+  data,
+  series,
+  timeframe: initialTimeframe,
+  height,
+  tooltipFormat,
+  convertFunc,
+  onTimeframeChange,
+  onZoom,
+  fixedTimeframe = false,
+  showLegend = false,
+  loading = false,
+  zoomRange,
+  autoScale = false,
+  spanGaps,
 }: ChartPanelProps) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [currentTimeframe, setCurrentTimeframe] = useState(initialTimeframe);
@@ -64,11 +70,11 @@ export function ChartPanel({
   const handleResetZoom = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (uplotRef.current) {
-        const duration = parseTimeframe(currentTimeframe);
-        const now = Math.floor(Date.now() / 1000);
-        uplotRef.current.setScale('x', { min: now - duration, max: now });
-        setIsZoomed(false);
-        onZoom?.(false, undefined);
+      const duration = parseTimeframe(currentTimeframe);
+      const now = Math.floor(Date.now() / 1000);
+      uplotRef.current.setScale("x", { min: now - duration, max: now });
+      setIsZoomed(false);
+      onZoom?.(false, undefined);
     }
   };
 
@@ -80,82 +86,88 @@ export function ChartPanel({
 
   const handleExpand = () => {
     if (onClick) {
-        let zoom: [number, number] | undefined;
-        if (isZoomed && uplotRef.current) {
-            const { min, max } = uplotRef.current.scales.x;
-            if (min != null && max != null) {
-                zoom = [min, max];
-            }
+      let zoom: [number, number] | undefined;
+      if (isZoomed && uplotRef.current) {
+        const { min, max } = uplotRef.current.scales.x;
+        if (min != null && max != null) {
+          zoom = [min, max];
         }
-        onClick({ timeframe: currentTimeframe, zoom });
+      }
+      onClick({ timeframe: currentTimeframe, zoom });
     }
   };
 
   return (
-    <Panel 
-        title={title} 
-        onClick={handleExpand}
-        rightSection={
-            <Group gap="xs" wrap="nowrap" onClick={(e) => e.stopPropagation()}>
-                {isZoomed && (
-                    <Group gap={4} wrap="nowrap">
-                        <Badge size="xs" variant="light" color="blue">Zoomed</Badge>
-                        <ActionIcon 
-                            variant="filled" 
-                            color="blue" 
-                            size="sm" 
-                            onClick={handleResetZoom}
-                            title="Reset Zoom"
-                            classNames={{ root: classes.actionIconZoomed }}
-                        >
-                            <IconRotateClockwise2 size={14} />
-                        </ActionIcon>
-                    </Group>
-                )}
-                {!fixedTimeframe && (
-                    <SegmentedControl
-                        size="xs"
-                        value={currentTimeframe}
-                        onChange={handleTfChange}
-                        classNames={{
-                            root: classes.segmentedControlRoot,
-                            indicator: classes.segmentedControlIndicator,
-                            label: classes.segmentedControlLabel,
-                            control: classes.segmentedControlControl,
-                        }}
-                        data={[
-                            { label: '1h', value: '1h' },
-                            { label: '1d', value: '24h' },
-                            { label: '1w', value: '7d' },
-                            { label: '1m', value: '30d' },
-                            { label: '1y', value: '1y' },
-                            { label: 'All', value: 'all' }
-                        ]}
-                    />
-                )}
+    <Panel
+      title={title}
+      onClick={handleExpand}
+      rightSection={
+        <Group gap="xs" wrap="nowrap" onClick={(e) => e.stopPropagation()}>
+          {isZoomed && (
+            <Group gap={4} wrap="nowrap">
+              <Badge size="xs" variant="light" color="blue">
+                Zoomed
+              </Badge>
+              <ActionIcon
+                variant="filled"
+                color="blue"
+                size="sm"
+                onClick={handleResetZoom}
+                title="Reset Zoom"
+                classNames={{ root: classes.actionIconZoomed }}
+              >
+                <IconRotateClockwise2 size={14} />
+              </ActionIcon>
             </Group>
-        }
+          )}
+          {!fixedTimeframe && (
+            <SegmentedControl
+              size="xs"
+              value={currentTimeframe}
+              onChange={handleTfChange}
+              classNames={{
+                root: classes.segmentedControlRoot,
+                indicator: classes.segmentedControlIndicator,
+                label: classes.segmentedControlLabel,
+                control: classes.segmentedControlControl,
+              }}
+              data={[
+                { label: "1h", value: "1h" },
+                { label: "1d", value: "24h" },
+                { label: "1w", value: "7d" },
+                { label: "1m", value: "30d" },
+                { label: "1y", value: "1y" },
+                { label: "All", value: "all" },
+              ]}
+            />
+          )}
+        </Group>
+      }
     >
-      <div style={{ position: 'relative', height: '100%' }}>
-          <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-          <BaseChart 
-            data={data} 
-            series={series} 
-            timeframe={currentTimeframe} 
-            height={height} 
-            tooltipFormat={tooltipFormat} 
-            convertFunc={convertFunc} 
-            onCreate={(u) => uplotRef.current = u}
-            onZoom={(z, range) => {
-                setIsZoomed(z);
-                onZoom?.(z, range);
-            }}
-            isZoomed={isZoomed}
-            showLegend={showLegend}
-            zoomRange={zoomRange}
-            autoScale={autoScale}
-            spanGaps={spanGaps}
-          />
+      <div style={{ position: "relative", height: "100%" }}>
+        <LoadingOverlay
+          visible={loading}
+          zIndex={1000}
+          overlayProps={{ radius: "sm", blur: 2 }}
+        />
+        <BaseChart
+          data={data}
+          series={series}
+          timeframe={currentTimeframe}
+          height={height}
+          tooltipFormat={tooltipFormat}
+          convertFunc={convertFunc}
+          onCreate={(u) => (uplotRef.current = u)}
+          onZoom={(z, range) => {
+            setIsZoomed(z);
+            onZoom?.(z, range);
+          }}
+          isZoomed={isZoomed}
+          showLegend={showLegend}
+          zoomRange={zoomRange}
+          autoScale={autoScale}
+          spanGaps={spanGaps}
+        />
       </div>
     </Panel>
   );

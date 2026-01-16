@@ -44,10 +44,22 @@ export function MonthlyAnalytics({
 
   useEffect(() => {
     const fetchData = async () => {
-      const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      const end = Math.floor(now.getTime() / 1000) + 86400; // Midnight tonight
-      const start = end - 86400 * 30; // 30 days ago
+      let start: number, end: number;
+      let queryStep = 86400;
+
+      if (zoomRange) {
+        [start, end] = zoomRange;
+        const duration = end - start;
+        // If zoomed into less than 7 days, get hourly data
+        if (duration < 86400 * 7) {
+          queryStep = 3600;
+        }
+      } else {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        end = Math.floor(now.getTime() / 1000) + 86400; // Midnight tonight
+        start = end - 86400 * 30; // 30 days ago
+      }
 
       const metrics = [
         {
@@ -80,15 +92,15 @@ export function MonthlyAnalytics({
       try {
         const results = await batchQueryMetrics(
           metrics,
-          start,
-          end,
-          86400,
+          Math.floor(start),
+          Math.ceil(end),
+          queryStep,
           "sum",
         );
         Object.keys(results).forEach((key) => {
           results[key] = results[key].map((p) => ({
             ...p,
-            Value: p.Value / 60,
+            Value: p.Value / (queryStep === 86400 ? 60 : 1), // Adjust divisor based on resolution
           }));
         });
         setData(results);
@@ -102,7 +114,7 @@ export function MonthlyAnalytics({
     fetchData();
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
-  }, []);
+  }, [zoomRange]);
 
   if (loading)
     return (
@@ -131,9 +143,7 @@ export function MonthlyAnalytics({
   };
 
   const handleZoom = (isZ: boolean, range?: [number, number]) => {
-    if (isZ && range) {
-      setZoomRange(range);
-    }
+    setZoomRange(isZ && range ? range : null);
     onZoom?.(isZ);
   };
 

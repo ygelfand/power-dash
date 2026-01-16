@@ -20,8 +20,12 @@ export function ChartDetail() {
     panel?: PanelConfig;
   } | null;
 
-  const [panel, setPanel] = useState<PanelConfig | null>(initialState?.panel || null);
-  const [timeframe, setTimeframe] = useState<string>(initialState?.timeframe || "24h");
+  const [panel, setPanel] = useState<PanelConfig | null>(
+    initialState?.panel || null,
+  );
+  const [timeframe, setTimeframe] = useState<string>(
+    initialState?.timeframe || "24h",
+  );
   const [loading, setLoading] = useState(!initialState?.panel);
   const [isZoomed, setIsZoomed] = useState(!!initialState?.zoom);
   const uplotRef = useRef<uPlot | null>(null);
@@ -32,7 +36,7 @@ export function ChartDetail() {
   useEffect(() => {
     // If panel is already loaded from state, we are done
     if (panel) {
-        return;
+      return;
     }
 
     fetchDashboards()

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChartPanel } from "../ChartPanel";
 import { useChartData, useDynamicColor, useSyncedTimeframe } from "../../utils";
 import type { ChartComponentProps } from "../../data";
@@ -18,6 +19,7 @@ export function InverterPower({
   onTimeframeChange,
   onZoom,
 }: ChartComponentProps) {
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
   const [localTf, setLocalTf] = useSyncedTimeframe(
     timeframe,
     panel.params?.timeframe,
@@ -25,13 +27,14 @@ export function InverterPower({
 
   const handleTfChange = (val: string) => {
     setLocalTf(val);
+    setZoomRange(null);
     onTimeframeChange?.(val);
   };
 
   const getDynamicColor = useDynamicColor();
   // Fetch solar string power instead of inverter power
     const metrics = [{ name: 'solar_power_watts', label: 'String', all: true }];
-    const { rawResults, loading } = useChartData(metrics, localTf);
+    const { rawResults, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
 
   // Aggregate string power by inverter index
   // Keys in rawResults are like "String index=0 string=A"
@@ -72,10 +75,14 @@ export function InverterPower({
       onClick={onClick}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}
-      onZoom={onZoom}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
       height={height}
       showLegend={showLegend}
       loading={loading}
+      zoomRange={zoomRange}
     />
   );
 }

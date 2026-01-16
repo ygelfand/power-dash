@@ -164,7 +164,6 @@ export function useChartData(
           });
           data.push(alignedData);
         });
-
         setChartData(data as [number[], ...number[][]] | undefined);
       } catch (e) {
         console.error(e);

@@ -1,6 +1,7 @@
 import { ChartPanel } from "../ChartPanel";
 import { useChartData, useSyncedTimeframe } from "../../utils";
 import type { ChartComponentProps } from "../../data";
+import { useState } from "react";
 
 export const PowerFlowDefaults = {
   title: "Power Flow",
@@ -19,6 +20,7 @@ export function PowerFlow({
   onTimeframeChange,
   onZoom,
 }: ChartComponentProps) {
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
   const [localTf, setLocalTf] = useSyncedTimeframe(
     timeframe,
     panel.params?.timeframe,
@@ -36,7 +38,14 @@ export function PowerFlow({
     { name: "power_watts", label: "Battery", tags: { site: "battery" } },
   ];
 
-  const { chartData, loading } = useChartData(metrics, localTf);
+  const { chartData, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
 
   const series = [
     { name: panel.params?.site || "Grid", color: "#fa5252", unit: "W" },
@@ -53,7 +62,10 @@ export function PowerFlow({
       onClick={(state) => onClick?.(state)}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}
-      onZoom={onZoom}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
       height={height}
       showLegend={showLegend}
       loading={loading}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ChartPanel } from "../ChartPanel";
 import { useChartData, useSyncedTimeframe, useDynamicColor } from "../../utils";
 import type { ChartComponentProps } from "../../data";
@@ -18,6 +19,7 @@ export function InverterVoltage({
   onTimeframeChange,
   onZoom,
 }: ChartComponentProps) {
+  const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
   const [localTf, setLocalTf] = useSyncedTimeframe(
     timeframe,
     panel.params?.timeframe,
@@ -26,13 +28,21 @@ export function InverterVoltage({
 
   const handleTfChange = (val: string) => {
     setLocalTf(val);
+    setZoomRange(null);
     onTimeframeChange?.(val);
   };
 
   const metrics = [
     { name: "inverter_voltage_volts", label: "Inverter", all: true },
   ];
-  const { chartData, rawResults, loading } = useChartData(metrics, localTf);
+  const { chartData, rawResults, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
 
   const sortedKeys = Object.keys(rawResults)
     .sort()
@@ -52,10 +62,14 @@ export function InverterVoltage({
       onClick={onClick}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}
-      onZoom={onZoom}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
       height={height}
       showLegend={showLegend}
       loading={loading}
+      zoomRange={zoomRange}
     />
   );
 }

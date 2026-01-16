@@ -38,7 +38,14 @@ export function GridVoltage({
     { name: "voltage_volts", label: "MSA", tags: { site: "msa" }, all: true },
     { name: "inverter_voltage_volts", label: "Inverter", all: true },
   ];
-  const { chartData, rawResults, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
+  const { chartData, rawResults, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
 
   const activeSeries: any[] = [];
   if (chartData) {
@@ -53,7 +60,9 @@ export function GridVoltage({
       });
   }
 
-  const typedChartData = chartData as [(number | null)[], ...(number | null)[][]] | undefined;
+  const typedChartData = chartData as
+    | [(number | null)[], ...(number | null)[][]]
+    | undefined;
 
   return (
     <ChartPanel
@@ -61,31 +70,16 @@ export function GridVoltage({
       series={activeSeries}
       data={typedChartData as any}
       onClick={onClick}
-
-        timeframe={localTf}
-
-        onTimeframeChange={handleTfChange}
-
-        onZoom={(z, range) => {
-
-          setZoomRange(z && range ? range : null);
-
-          onZoom?.(z);
-
-        }}
-
-        height={height}
-
-        showLegend={showLegend}
-
-        loading={loading}
-
-        autoScale={true}
-
-      />
-
-    );
-
-  }
-
-  
+      timeframe={localTf}
+      onTimeframeChange={handleTfChange}
+      onZoom={(z, range) => {
+        setZoomRange(z && range ? range : null);
+        onZoom?.(z);
+      }}
+      height={height}
+      showLegend={showLegend}
+      loading={loading}
+      autoScale={true}
+    />
+  );
+}

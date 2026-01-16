@@ -87,12 +87,18 @@ export function Dashboard() {
                   handlePanelTimeframeChange(panel.name, tf)
                 }
                 onZoom={(z) => z && setMixed(true)}
-                    onClick={(state) => {
-                        const currentTf = panelTimeframes[panel.name] || globalTimeframe || "24h";
-                        const isObject = state && typeof state === 'object' && !('nativeEvent' in state);
-                        const navState = isObject ? { ...state, panel } : { panel, timeframe: currentTf };
-                        navigate(`/chart/${panel.name}`, { state: navState });
-                    }}
+                onClick={(state) => {
+                  const currentTf =
+                    panelTimeframes[panel.name] || globalTimeframe || "24h";
+                  const isObject =
+                    state &&
+                    typeof state === "object" &&
+                    !("nativeEvent" in state);
+                  const navState = isObject
+                    ? { ...state, panel }
+                    : { panel, timeframe: currentTf };
+                  navigate(`/chart/${panel.name}`, { state: navState });
+                }}
               />
             </ErrorBoundary>
           </Grid.Col>

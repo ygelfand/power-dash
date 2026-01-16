@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ChartPanel } from '../ChartPanel';
 import { useChartData, useDynamicColor, useSyncedTimeframe } from '../../utils';
 import type { ChartComponentProps } from '../../data';
@@ -9,11 +10,13 @@ export const ReactivePowerDefaults = {
     params: { timeframe: "24h" }
 };
 
-export function ReactivePower({ panel, height, timeframe, onClick, showLegend, onTimeframeChange }: ChartComponentProps) {
+export function ReactivePower({ panel, height, timeframe, onClick, showLegend, onTimeframeChange, onZoom }: ChartComponentProps) {
+    const [zoomRange, setZoomRange] = useState<[number, number] | null>(null);
     const [localTf, setLocalTf] = useSyncedTimeframe(timeframe, panel.params?.timeframe);
 
     const handleTfChange = (val: string) => {
         setLocalTf(val);
+        setZoomRange(null);
         onTimeframeChange?.(val);
     };
 
@@ -24,7 +27,14 @@ export function ReactivePower({ panel, height, timeframe, onClick, showLegend, o
         { name: 'power_reactive_var', label: 'Solar', tags: { site: 'solar' } },
         { name: 'power_reactive_var', label: 'Battery', tags: { site: 'battery' } },
     ];
-    const { chartData, loading } = useChartData(metrics, localTf);
+    const { chartData, loading } = useChartData(
+        metrics, 
+        localTf, 
+        undefined, 
+        undefined, 
+        undefined, 
+        zoomRange
+    );
 
     const series = [
         { name: 'Grid', color: getDynamicColor('Grid'), unit: 'VAR' },
@@ -33,5 +43,20 @@ export function ReactivePower({ panel, height, timeframe, onClick, showLegend, o
         { name: 'Battery', color: getDynamicColor('Battery'), unit: 'VAR' },
     ];
 
-    return <ChartPanel title={panel.title} series={series} data={chartData} onClick={onClick} timeframe={localTf} onTimeframeChange={handleTfChange} height={height} showLegend={showLegend} loading={loading} />;
+    return <ChartPanel 
+        title={panel.title} 
+        series={series} 
+        data={chartData} 
+        onClick={onClick} 
+        timeframe={localTf} 
+        onTimeframeChange={handleTfChange} 
+        onZoom={(z, range) => {
+            setZoomRange(z && range ? range : null);
+            onZoom?.(z);
+        }}
+        height={height} 
+        showLegend={showLegend} 
+        loading={loading}
+        zoomRange={zoomRange}
+    />;
 }
