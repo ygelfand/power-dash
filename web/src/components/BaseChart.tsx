@@ -451,6 +451,8 @@ export function BaseChart({
     spanGaps,
     now,
     uniqueUnits,
+    isZoomed,
+    JSON.stringify(zoomRange),
   ]);
 
   const hasData =
@@ -473,7 +475,7 @@ export function BaseChart({
         <div style={{ flexGrow: 1, minWidth: 0 }}>
           {width > 0 && (
             <UplotReact
-              key={`${isDark}-${series.length}-${JSON.stringify(uniqueUnits)}-${timeframe}`}
+              key={`${isDark}-${series.length}-${JSON.stringify(uniqueUnits)}-${timeframe}-${isZoomed}-${JSON.stringify(zoomRange)}`}
               options={options}
               data={data}
               resetScales={false}

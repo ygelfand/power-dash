@@ -80,6 +80,7 @@ export function GridVoltage({
       showLegend={showLegend}
       loading={loading}
       autoScale={true}
+      zoomRange={zoomRange}
     />
   );
 }

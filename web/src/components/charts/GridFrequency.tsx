@@ -35,7 +35,14 @@ export function GridFrequency({
     { name: "frequency_hertz", label: "Site", all: true },
     { name: "inverter_frequency_hertz", label: "Inverter", all: true },
   ];
-  const { rawResults, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
+  const { rawResults, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
 
   const activeSeries: any[] = [];
 
@@ -118,6 +125,7 @@ export function GridFrequency({
       showLegend={showLegend}
       loading={loading}
       autoScale={true}
+      zoomRange={zoomRange}
     />
   );
 }

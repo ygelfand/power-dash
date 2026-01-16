@@ -8,7 +8,6 @@ export const PowerFlowDefaults = {
   component: "PowerFlow",
   size: 8,
   showLegend: true,
-  params: { timeframe: "24h" },
 };
 
 export function PowerFlow({
@@ -69,6 +68,7 @@ export function PowerFlow({
       height={height}
       showLegend={showLegend}
       loading={loading}
+      zoomRange={zoomRange}
     />
   );
 }
