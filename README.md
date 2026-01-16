@@ -7,6 +7,8 @@
 **Power Dash** is a modern, self-hosted dashboard and automation platform for the Tesla Powerwall. It acts as a high-performance bridge to your local gateway, collecting high-frequency data and presenting it in a beautiful, responsive interface.
 
 ![Power Dash Dashboard](docs/images/power-dash.png)
+![Power Dash Status](docs/images/power-dash-2.png)
+![Power Dash Settings](docs/images/power-dash-3.png)
 
 ## ✨ Features
 
