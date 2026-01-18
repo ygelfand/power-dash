@@ -88,18 +88,18 @@ export function useDataRefresh(
   intervalMs: number,
   dependencies: any[] = [],
 ) {
-  const { isPaused } = useRefresh();
+  const { isPaused, refreshKey } = useRefresh();
   const savedCallback = useRef(callback);
 
   useEffect(() => {
     savedCallback.current = callback;
   }, [callback]);
 
-  // Trigger fetch whenever dependencies change (e.g. timeframe, metrics) or on mount
+  // Trigger fetch whenever dependencies change (e.g. timeframe, metrics), on manual refresh, or on mount
   useEffect(() => {
     savedCallback.current();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, dependencies);
+  }, [...dependencies, refreshKey]);
 
   // Manage periodic refresh interval
   useEffect(() => {

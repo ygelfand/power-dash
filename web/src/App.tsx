@@ -2,7 +2,7 @@ import { Container, ActionIcon, useMantineColorScheme, useComputedColorScheme, A
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import { useWindowScroll, useDisclosure } from '@mantine/hooks';
-import { IconSun, IconMoon, IconSettings, IconInfoCircle, IconHelp, IconHome, IconTool, IconPlayerPause, IconPlayerPlay } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconSettings, IconInfoCircle, IconHelp, IconHome, IconTool, IconPlayerPause, IconPlayerPlay, IconRefresh } from '@tabler/icons-react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { Tagline } from './components/Tagline';
@@ -23,7 +23,7 @@ function AppContent() {
   const isScrolled = scroll.y > 50;
   const [opened, { toggle, close }] = useDisclosure(false);
   const { globalTimeframe, setGlobalTimeframe, isMixed } = useGlobalTimeframe();
-  const { isPaused, setPaused } = useRefresh();
+  const { isPaused, setPaused, manualRefresh, isRefreshing } = useRefresh();
   const location = useLocation();
   const isDashboard = location.pathname === '/';
 
@@ -212,6 +212,27 @@ function AppContent() {
                                 }}
                             >
                                 {isPaused ? <IconPlayerPlay size={20} color="var(--mantine-color-teal-6)" /> : <IconPlayerPause size={20} color={computedColorScheme === 'dark' ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'} />}
+                            </ActionIcon>
+                        </Tooltip>
+                        <Tooltip label="Reload Data">
+                            <ActionIcon 
+                                size="38px" 
+                                variant="default" 
+                                radius="sm" 
+                                onClick={manualRefresh}
+                                style={{
+                                    backgroundColor: computedColorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
+                                    border: `1px solid ${computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
+                                }}
+                            >
+                                <IconRefresh 
+                                    size={20} 
+                                    color={computedColorScheme === 'dark' ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'} 
+                                    style={{
+                                        transition: 'transform 1s ease-in-out',
+                                        transform: isRefreshing ? 'rotate(360deg)' : 'none'
+                                    }}
+                                />
                             </ActionIcon>
                         </Tooltip>
                         </>
