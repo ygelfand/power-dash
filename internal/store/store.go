@@ -214,6 +214,7 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 
 	for ss.Next() {
 		it := ss.At().Iterator(nil)
+		var prevT int64 = 0
 		for it.Next() == chunkenc.ValFloat {
 			t, v := it.At()
 			tSec := t / 1000
@@ -225,8 +226,21 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 					b = &bucketData{min: v, max: v, set: true}
 					buckets[bucketTs] = b
 				}
-				b.sum += v
-				b.count++
+
+				if function == "integral" {
+					if prevT > 0 {
+						dt := (t - prevT) / 1000
+						// Sanity check for dt to avoid massive spikes on gaps (2+min)
+						if dt > 0 && dt <= 120 {
+							b.sum += v * float64(dt)
+						}
+					}
+					b.count++ // Count points
+				} else {
+					b.sum += v
+					b.count++
+				}
+
 				if v < b.min {
 					b.min = v
 				}
@@ -236,6 +250,7 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 			} else {
 				results = append(results, &DataPoint{Timestamp: tSec, Value: v})
 			}
+			prevT = t
 		}
 	}
 
@@ -245,6 +260,8 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 			switch function {
 			case "sum":
 				val = b.sum
+			case "integral":
+				val = b.sum // Already integrated (Watt-seconds)
 			case "min":
 				val = b.min
 			case "max":

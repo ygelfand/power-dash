@@ -66,8 +66,6 @@ export function GridFrequency({
 
         const dataMap = new Map(pts.map((p) => [p.Timestamp, p.Value]));
 
-        // Check if series has non-zero data
-
         const hasData = pts.some((p) => p.Value !== 0);
 
         if (hasData) {
@@ -100,10 +98,8 @@ export function GridFrequency({
 
           const aligned = sortedTs.map((ts) => {
             const val = dataMap.get(ts);
-
-            return val !== undefined ? val : null;
+            return val !== undefined && val !== 0 ? val : null;
           });
-
           chartData.push(aligned);
         }
       });
@@ -125,6 +121,7 @@ export function GridFrequency({
       showLegend={showLegend}
       loading={loading}
       autoScale={true}
+      spanGaps={true}
       zoomRange={zoomRange}
     />
   );

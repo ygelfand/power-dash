@@ -33,7 +33,7 @@ build: ## Build the backend binary
         -ldflags '-X github.com/ygelfand/power-dash/internal/cli.PowerDashVersion=$(VERSION)' \
         -o bin/power-dash cmd/power-dash/main.go
 
-run-dev: build ## Run backend with hot-reloading frontend (requires 2 terminals or bg)
+run-dev: build ## Run backend with hot-reloading frontend 
 	@mkdir -p tmp/data
 	@echo "Starting power-dash dev environment..."
 	@echo "Backend: http://localhost:8080"
@@ -41,6 +41,15 @@ run-dev: build ## Run backend with hot-reloading frontend (requires 2 terminals 
 	@trap 'kill 0' EXIT; \
 	(cd web && npm run dev) & \
 	./bin/power-dash run --config fixtures/power-dash.yaml --log-level info --listen :8080
+
+run-dev-nc: build ## Run backend with hot-reloading frontend without collector  
+	@mkdir -p tmp/data
+	@echo "Starting power-dash dev environment..."
+	@echo "Backend: http://localhost:8080"
+	@echo "Frontend: http://localhost:8000"
+	@trap 'kill 0' EXIT; \
+	(cd web && npm run dev) & \
+	./bin/power-dash run --no-collector --config fixtures/power-dash.yaml --log-level info --listen :8080
 
 run-test: ui build ## Run backend with embedded frontend (production simulation)
 	@mkdir -p tmp/data

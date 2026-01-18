@@ -95,12 +95,12 @@ export function MonthlyAnalytics({
           Math.floor(start),
           Math.ceil(end),
           queryStep,
-          "sum",
+          "integral",
         );
         Object.keys(results).forEach((key) => {
           results[key] = results[key].map((p) => ({
             ...p,
-            Value: p.Value / (queryStep === 86400 ? 60 : 1), // Adjust divisor based on resolution
+            Value: p.Value / 3600,
           }));
         });
         setData(results);

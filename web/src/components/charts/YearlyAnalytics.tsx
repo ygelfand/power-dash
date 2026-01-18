@@ -27,14 +27,12 @@ export function YearlyAnalytics({
   useEffect(() => {
     const fetchData = async () => {
       let start: number, end: number;
-      let queryStep = 86400;
+      const queryStep = 86400;
 
       if (zoomRange) {
         [start, end] = zoomRange;
-        const duration = end - start;
-        if (duration < 86400 * 30) {
-          queryStep = 3600;
-        }
+        start = Math.floor(start / 86400) * 86400;
+        end = Math.ceil(end / 86400) * 86400;
       } else {
         // Align to UTC midnight to match backend's floor(ts/86400)*86400 logic
         end = Math.floor(Date.now() / 1000 / 86400) * 86400 + 86400;
@@ -62,31 +60,19 @@ export function YearlyAnalytics({
           Math.floor(start),
           Math.ceil(end),
           queryStep,
-          "sum",
+          "integral",
         );
 
         Object.keys(results).forEach((key) => {
           results[key] = results[key].map((p) => ({
             ...p,
-            Value: p.Value / (queryStep === 86400 ? 60 : 1),
+            Value: p.Value / 3600,
           }));
         });
 
-        // For non-daily view, we might want to just align timestamps normally
-        let finalTs: number[];
-        if (queryStep === 86400) {
-          finalTs = [];
-          for (let t = Math.floor(start); t < end; t += 86400) {
-            finalTs.push(t);
-          }
-        } else {
-          finalTs = Array.from(
-            new Set(
-              Object.values(results).flatMap((pts) =>
-                pts.map((p) => p.Timestamp),
-              ),
-            ),
-          ).sort((a, b) => a - b);
+        const finalTs = [];
+        for (let t = Math.floor(start); t < end; t += 86400) {
+          finalTs.push(t);
         }
 
         const solarMap = new Map(
@@ -108,7 +94,6 @@ export function YearlyAnalytics({
           if (from === undefined && to === undefined) return null;
           return (from ?? 0) - (to ?? 0);
         });
-
         setChartData([
           finalTs,
           finalTs.map((ts) => solarMap.get(ts) ?? null),
@@ -123,8 +108,6 @@ export function YearlyAnalytics({
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 60000 * 60); // Refresh every hour
-    return () => clearInterval(interval);
   }, [zoomRange]);
 
   if (loading)
@@ -145,7 +128,9 @@ export function YearlyAnalytics({
       title={panel.title}
       series={series}
       data={chartData}
-      onClick={() => onClick?.({ timeframe: activeTf, zoom: zoomRange || undefined })}
+      onClick={() =>
+        onClick?.({ timeframe: activeTf, zoom: zoomRange || undefined })
+      }
       timeframe={activeTf}
       height={height}
       tooltipFormat="date"
