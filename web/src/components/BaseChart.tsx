@@ -102,7 +102,6 @@ export function BaseChart({
   const [width] = useDebouncedValue(rawWidth, 100);
   const isDark = colorScheme === "dark";
 
-  // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   useEffect(() => {
     const interval = setInterval(
@@ -568,4 +567,3 @@ export function BaseChart({
     </Box>
   );
 }
-

@@ -49,11 +49,7 @@ export function SystemAlerts({
   const { rawResults, loading } = useChartData(metrics, localTf);
 
   // eslint-disable-next-line react-hooks/purity
-  const [now, setNow] = useState(Math.floor(Date.now() / 1000));
-  useEffect(() => {
-    const interval = setInterval(() => setNow(Math.floor(Date.now() / 1000)), 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const [now] = useState(Math.floor(Date.now() / 1000));
 
   const { duration, start } = useMemo(() => {
     const d = parseTimeframe(localTf);
