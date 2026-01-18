@@ -118,12 +118,12 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 		},
 	}
 	runCmd.Flags().BoolVar(&o.DisableCollector, "no-collector", false, "disable data collection")
-	
+
 	defaults := config.NewDefaultProxyOptions()
 	runCmd.Flags().StringVarP(&o.ListenOn, "listen", "l", defaults.ListenOn, "host:port to listen on")
-	runCmd.Flags().Uint32VarP(&o.RefreshInterval, "refresh", "r", defaults.RefreshInterval, "periodic refresh frequency in seconds")
 	runCmd.Flags().Uint32Var(&o.CollectionInterval, "collection-interval", defaults.CollectionInterval, "data collection frequency in seconds")
-	runCmd.Flags().Uint32Var(&o.UIRefreshInterval, "ui-refresh-interval", defaults.UIRefreshInterval, "UI data refresh frequency in seconds")
+	runCmd.Flags().BoolVar(&o.AutoRefresh, "auto-refresh", defaults.AutoRefresh, "enable auto-refresh on startup")
+	runCmd.Flags().StringVar(&o.DefaultTheme, "default-theme", defaults.DefaultTheme, "default UI theme (light, dark, auto)")
 	runCmd.Flags().StringVar(&o.LogLevel, "log-level", defaults.LogLevel, "log level (debug, info, warn, error)")
 
 	runCmd.Flags().StringVar(&o.Storage.DataPath, "storage-path", defaults.Storage.DataPath, "path to storage directory")

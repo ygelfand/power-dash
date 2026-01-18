@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMantineTheme } from "@mantine/core";
 import { batchQueryMetrics } from "./data";
 import type { DataPoint, MetricQuery } from "./data";
+import { useRefresh } from "./contexts/RefreshContext";
 
 export function parseTimeframe(tf: string): number {
   if (tf === "all") return 86400 * 365 * 10;
@@ -82,10 +83,36 @@ export function useSyncedTimeframe(
   return [localTf, setLocalTf];
 }
 
+export function useDataRefresh(
+  callback: () => void,
+  intervalMs: number,
+  dependencies: any[] = [],
+) {
+  const { isPaused } = useRefresh();
+  const savedCallback = useRef(callback);
+
+  useEffect(() => {
+    savedCallback.current = callback;
+  }, [callback]);
+
+  // Trigger fetch whenever dependencies change (e.g. timeframe, metrics) or on mount
+  useEffect(() => {
+    savedCallback.current();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, dependencies);
+
+  // Manage periodic refresh interval
+  useEffect(() => {
+    if (isPaused) return;
+    const id = setInterval(() => savedCallback.current(), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs, isPaused]);
+}
+
 export function useChartData(
   metrics: MetricQuery[],
   timeframe: string,
-  intervalMs = 30000,
+  explicitIntervalMs?: number,
   step?: number,
   func?: string,
   zoomRange?: [number, number] | null,
@@ -99,83 +126,99 @@ export function useChartData(
   const metricsStr = JSON.stringify(metrics);
   const zoomRangeStr = JSON.stringify(zoomRange);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      let start: number, end: number;
+  // Determine refresh interval based on timeframe if not explicit
+  let intervalMs = 30000; // Default 30s
+  if (explicitIntervalMs !== undefined) {
+    intervalMs = explicitIntervalMs;
+  } else {
+    if (timeframe.endsWith("m") || timeframe === "30d") {
+      intervalMs = 3600000; // 1 hour for monthly
+    } else if (timeframe.endsWith("y")) {
+      intervalMs = 86400000; // 1 day for yearly
+    }
+  }
 
-      if (zoomRange) {
-        // Use the zoomed range
-        [start, end] = zoomRange;
-        // Ensure integers
-        start = Math.floor(start);
-        end = Math.ceil(end);
-      } else {
-        // Use the selected timeframe
-        const duration = parseTimeframe(timeframe);
-        end = Math.floor(Date.now() / 1000);
-        start = end - duration;
-      }
+  const fetchData = async () => {
+    // Don't set loading on background refresh to avoid flicker
+    if (!chartData) setLoading(true);
+    let start: number, end: number;
 
-      const duration = end - start;
+    if (zoomRange) {
+      // Use the zoomed range
+      [start, end] = zoomRange;
+      // Ensure integers
+      start = Math.floor(start);
+      end = Math.ceil(end);
+    } else {
+      // Use the selected timeframe
+      const duration = parseTimeframe(timeframe);
+      end = Math.floor(Date.now() / 1000);
+      start = end - duration;
+    }
 
-      // Auto-calculate step to target ~1000 points
-      // If duration is small enough (<= 7 days), request full precision (step=0)
-      // Otherwise, downsample.
-      const queryStep =
-        step !== undefined
-          ? step
-          : duration > 86400 * 7
-            ? Math.max(1, Math.floor(duration / 1000))
-            : 0;
+    const duration = end - start;
 
-      try {
-        const results = await batchQueryMetrics(
-          metrics,
-          start,
-          end,
-          queryStep,
-          func,
+    // Auto-calculate step to target ~1000 points
+    // If duration is small enough (<= 7 days), request full precision (step=0)
+    // Otherwise, downsample.
+    const queryStep =
+      step !== undefined
+        ? step
+        : duration > 86400 * 7
+          ? Math.max(1, Math.floor(duration / 1000))
+          : 0;
+
+    try {
+      const results = await batchQueryMetrics(
+        metrics,
+        start,
+        end,
+        queryStep,
+        func,
+      );
+      setRawResults(results);
+
+      const sortedTs = alignTimestamps(results);
+      const data: (number[] | (number | null)[])[] = [sortedTs];
+
+      const seriesKeys: string[] = [];
+      metrics.forEach((m) => {
+        if (m.all) {
+          const matchingKeys = Object.keys(results)
+            .filter((k) => k.startsWith(m.label))
+            .sort();
+          seriesKeys.push(...matchingKeys);
+        } else {
+          seriesKeys.push(m.label);
+        }
+      });
+
+      seriesKeys.forEach((k) => {
+        const ptsMap = new Map(
+          (results[k] || []).map((p) => [p.Timestamp, p.Value]),
         );
-        setRawResults(results);
-
-        const sortedTs = alignTimestamps(results);
-        const data: (number[] | (number | null)[])[] = [sortedTs];
-
-        const seriesKeys: string[] = [];
-        metrics.forEach((m) => {
-          if (m.all) {
-            const matchingKeys = Object.keys(results)
-              .filter((k) => k.startsWith(m.label))
-              .sort();
-            seriesKeys.push(...matchingKeys);
-          } else {
-            seriesKeys.push(m.label);
-          }
+        const alignedData = sortedTs.map((ts) => {
+          const val = ptsMap.get(ts);
+          return val !== undefined ? val : null;
         });
+        data.push(alignedData);
+      });
+      setChartData(data as [number[], ...number[][]] | undefined);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        seriesKeys.forEach((k) => {
-          const ptsMap = new Map(
-            (results[k] || []).map((p) => [p.Timestamp, p.Value]),
-          );
-          const alignedData = sortedTs.map((ts) => {
-            const val = ptsMap.get(ts);
-            return val !== undefined ? val : null;
-          });
-          data.push(alignedData);
-        });
-        setChartData(data as [number[], ...number[][]] | undefined);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, intervalMs);
-    return () => clearInterval(interval);
-  }, [timeframe, metricsStr, step, func, intervalMs, zoomRangeStr]);
+  // Unified fetch and periodic refresh
+  useDataRefresh(fetchData, intervalMs, [
+    timeframe,
+    metricsStr,
+    step,
+    func,
+    zoomRangeStr,
+  ]);
 
   return { chartData, loading, rawResults };
 }

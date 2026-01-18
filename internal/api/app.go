@@ -19,15 +19,14 @@ import (
 )
 
 type Api struct {
-	powerwall         *powerwall.PowerwallGateway
-	proxy             *httputil.ReverseProxy
-	store             *store.Store
-	collectorManager  *collector.Manager
-	options           *config.ProxyOptions
-	dashboards        []config.DashboardConfig
-	uiRefreshInterval uint32
-	logger            *zap.Logger
-	importStatus      *ImportStatus
+	powerwall        *powerwall.PowerwallGateway
+	proxy            *httputil.ReverseProxy
+	store            *store.Store
+	collectorManager *collector.Manager
+	options          *config.ProxyOptions
+	dashboards       []config.DashboardConfig
+	logger           *zap.Logger
+	importStatus     *ImportStatus
 }
 
 type ImportStatus struct {
@@ -44,15 +43,14 @@ func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager
 		z = zap.NewNop()
 	}
 	return &Api{
-		powerwall:         p,
-		proxy:             newProxy(p),
-		store:             s,
-		collectorManager:  cm,
-		options:           opts,
-		dashboards:        opts.Dashboards,
-		uiRefreshInterval: opts.UIRefreshInterval,
-		logger:            z,
-		importStatus:      &ImportStatus{},
+		powerwall:        p,
+		proxy:            newProxy(p),
+		store:            s,
+		collectorManager: cm,
+		options:          opts,
+		dashboards:       opts.Dashboards,
+		logger:           z,
+		importStatus:     &ImportStatus{},
 	}
 }
 

@@ -58,3 +58,11 @@ run-test: ui build ## Run backend with embedded frontend (production simulation)
 
 web-dev: ## Run just the frontend dev server
 	cd web && npm run dev
+
+web-lint: ## Run frontend linter
+	cd web && npm run lint
+
+web-build: ## Build the frontend
+	cd web && npm install && npm run build
+
+web-check: web-lint web-build ## Run frontend lint and build

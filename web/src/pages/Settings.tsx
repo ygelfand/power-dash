@@ -9,7 +9,6 @@ import {
   Stack,
   TextInput,
   PasswordInput,
-  NumberInput,
   Select,
   Button,
   Switch,
@@ -348,36 +347,6 @@ export function Settings() {
                   }
                 />
                 <Group grow>
-                  <NumberInput
-                    label={
-                      <Group gap={0}>
-                        Refresh Interval {renderOverride("refresh-interval")}
-                      </Group>
-                    }
-                    description="API polling (seconds)"
-                    value={config["refresh-interval"]}
-                    disabled={
-                      !writable || !!overrides["refresh-interval"]
-                    }
-                    onChange={(v) =>
-                      setConfig({ ...config, "refresh-interval": v })
-                    }
-                  />
-                  <NumberInput
-                    label={
-                      <Group gap={0}>
-                        UI Update Rate {renderOverride("ui-refresh-interval")}
-                      </Group>
-                    }
-                    description="Chart refresh (seconds)"
-                    value={config["ui-refresh-interval"]}
-                    disabled={
-                      !writable || !!overrides["ui-refresh-interval"]
-                    }
-                    onChange={(v) =>
-                      setConfig({ ...config, "ui-refresh-interval": v })
-                    }
-                  />
                 </Group>
               </Stack>
             </Card>
@@ -458,6 +427,22 @@ export function Settings() {
                 <Select
                   label={
                     <Group gap={0}>
+                      Default Theme {renderOverride("default-theme")}
+                    </Group>
+                  }
+                  description="Initial UI appearance"
+                  data={[
+                    { value: "auto", label: "Auto (System)" },
+                    { value: "dark", label: "Dark" },
+                    { value: "light", label: "Light" },
+                  ]}
+                  value={config["default-theme"] || "auto"}
+                  disabled={!writable || !!overrides["default-theme"]}
+                  onChange={(v) => setConfig({ ...config, "default-theme": v })}
+                />
+                <Select
+                  label={
+                    <Group gap={0}>
                       Log Level {renderOverride("log-level")}
                     </Group>
                   }
@@ -487,6 +472,24 @@ export function Settings() {
                 <Text fw={700}>System Behavior</Text>
               </Group>
               <Grid>
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                  <Switch
+                    label={
+                      <Group gap={0}>
+                        Auto-Refresh {renderOverride("auto-refresh")}
+                      </Group>
+                    }
+                    description="Enable live data updates on startup"
+                    checked={config["auto-refresh"]}
+                    disabled={!writable || !!overrides["auto-refresh"]}
+                    onChange={(e) =>
+                      setConfig({
+                        ...config,
+                        "auto-refresh": e.currentTarget.checked,
+                      })
+                    }
+                  />
+                </Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}>
                   <Switch
                     label={

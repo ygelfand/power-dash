@@ -1,12 +1,13 @@
-import { Container, ActionIcon, useMantineColorScheme, Affix, Group, Title, Box, Image, SegmentedControl, Stack, Collapse, Loader, Center } from '@mantine/core';
+import { Container, ActionIcon, useMantineColorScheme, useComputedColorScheme, Affix, Group, Title, Box, Image, SegmentedControl, Stack, Collapse, Loader, Center, Tooltip } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/notifications/styles.css';
 import { useWindowScroll, useDisclosure } from '@mantine/hooks';
-import { IconSun, IconMoon, IconSettings, IconInfoCircle, IconHelp, IconHome, IconTool } from '@tabler/icons-react';
+import { IconSun, IconMoon, IconSettings, IconInfoCircle, IconHelp, IconHome, IconTool, IconPlayerPause, IconPlayerPlay } from '@tabler/icons-react';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Tagline } from './components/Tagline';
 import { TimeframeProvider, useGlobalTimeframe } from './contexts/TimeframeContext';
+import { RefreshProvider, useRefresh } from './contexts/RefreshContext';
 import classes from './App.module.css';
 
 const Dashboard = lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
@@ -16,13 +17,36 @@ const Troubleshoot = lazy(() => import('./pages/Troubleshoot'));
 const ChartDetail = lazy(() => import('./pages/ChartDetail').then(module => ({ default: module.ChartDetail })));
 
 function AppContent() {
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { setColorScheme, toggleColorScheme } = useMantineColorScheme();
+  const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true });
   const [scroll] = useWindowScroll();
   const isScrolled = scroll.y > 50;
   const [opened, { toggle, close }] = useDisclosure(false);
   const { globalTimeframe, setGlobalTimeframe, isMixed } = useGlobalTimeframe();
+  const { isPaused, setPaused } = useRefresh();
   const location = useLocation();
   const isDashboard = location.pathname === '/';
+
+  useEffect(() => {
+    fetch('/api/v1/settings')
+      .then(res => res.json())
+      .then(data => {
+        const config = data.config;
+        if (config) {
+          // Set initial pause state (paused if auto-refresh is false)
+          setPaused(!config['auto-refresh']);
+          
+          // Set theme
+          const theme = config['default-theme'];
+          if (theme === 'dark' || theme === 'light') {
+            setColorScheme(theme);
+          } else {
+            setColorScheme('auto');
+          }
+        }
+      })
+      .catch(console.error);
+  }, []); // Only on mount
 
   return (
       <Box pb="xl">
@@ -132,6 +156,7 @@ function AppContent() {
                 {/* Right Side: Controls */}
                 <Group gap="xs">
                                         {isDashboard && (
+                                            <>
                                             <SegmentedControl
                                                 value={globalTimeframe}
                                                 onChange={(val) => {
@@ -154,26 +179,42 @@ function AppContent() {
                             ]}
                             styles={{
                                 root: { 
-                                    backgroundColor: colorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
+                                    backgroundColor: computedColorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
                                     boxShadow: 'var(--mantine-shadow-sm)',
-                                    border: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
+                                    border: `1px solid ${computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
                                     padding: 2
                                 },
                                 label: {
                                     fontWeight: 700,
                                     paddingLeft: 20,
                                     paddingRight: 20,
-                                    color: colorScheme === 'dark' ? 'var(--mantine-color-gray-3)' : 'var(--mantine-color-gray-7)'
+                                    color: computedColorScheme === 'dark' ? 'var(--mantine-color-gray-3)' : 'var(--mantine-color-gray-7)'
                                 },
                                 indicator: {
                                     backgroundColor: isMixed 
-                                        ? (colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-blue-0)')
-                                        : (colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-white)'),
-                                    backgroundImage: isMixed ? `repeating-linear-gradient(45deg, transparent, transparent 5px, ${colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 139, 230, 0.1)'} 5px, ${colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 139, 230, 0.1)'} 10px)` : undefined,
-                                    boxShadow: colorScheme === 'dark' ? 'none' : 'var(--mantine-shadow-xs)'
+                                        ? (computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-blue-0)')
+                                        : (computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-white)')
+                                    ,
+                                    backgroundImage: isMixed ? `repeating-linear-gradient(45deg, transparent, transparent 5px, ${computedColorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 139, 230, 0.1)'} 5px, ${computedColorScheme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(34, 139, 230, 0.1)'} 10px)` : undefined,
+                                    boxShadow: computedColorScheme === 'dark' ? 'none' : 'var(--mantine-shadow-xs)'
                                 }
                             }}
                         />
+                        <Tooltip label={isPaused ? "Resume Auto-Refresh" : "Pause Auto-Refresh"}>
+                            <ActionIcon 
+                                size="38px" 
+                                variant="default" 
+                                radius="sm" 
+                                onClick={() => setPaused(!isPaused)}
+                                style={{
+                                    backgroundColor: computedColorScheme === 'dark' ? 'var(--mantine-color-dark-6)' : 'var(--mantine-color-gray-1)',
+                                    border: `1px solid ${computedColorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-3)'}`,
+                                }}
+                            >
+                                {isPaused ? <IconPlayerPlay size={20} color="var(--mantine-color-teal-6)" /> : <IconPlayerPause size={20} color={computedColorScheme === 'dark' ? 'var(--mantine-color-dark-2)' : 'var(--mantine-color-gray-6)'} />}
+                            </ActionIcon>
+                        </Tooltip>
+                        </>
                     )}
                 </Group>
             </Group>
@@ -182,7 +223,7 @@ function AppContent() {
         {/* Floating Dark Mode (Bottom Right) */}
         <Affix position={{ bottom: 20, right: 20 }} zIndex={100}>
             <ActionIcon radius="xl" size="xl" variant="default" onClick={() => toggleColorScheme()} aria-label="Toggle Color Scheme">
-                {colorScheme === 'dark' ? <IconSun size={24} /> : <IconMoon size={24} />}
+                {computedColorScheme === 'dark' ? <IconSun size={24} /> : <IconMoon size={24} />}
             </ActionIcon>
         </Affix>
 
@@ -205,9 +246,11 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-        <TimeframeProvider>
-            <AppContent />
-        </TimeframeProvider>
+        <RefreshProvider>
+            <TimeframeProvider>
+                <AppContent />
+            </TimeframeProvider>
+        </RefreshProvider>
     </BrowserRouter>
   );
 }

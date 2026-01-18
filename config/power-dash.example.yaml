@@ -1,10 +1,10 @@
 endpoint: https://192.168.91.1/
 password: REPLACEME
-debug: true
-refresh-interval: 30
+debug: false
 collection-interval: 30
-ui-refresh-interval: 30
-log-level: debug
+auto-refresh: true
+log-level: info
+default-theme: auto # auto, light, dark
 listen: :8080
 storage:
   path: /data

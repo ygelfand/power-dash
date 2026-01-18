@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   SimpleGrid,
   Text,
@@ -15,6 +15,7 @@ import { batchQueryMetrics } from "../../data";
 import type { DataPoint, ChartComponentProps } from "../../data";
 import { bars } from "./uplot-utils";
 import classes from "../ChartPanel.module.css";
+import { useDataRefresh } from "../../utils";
 
 export const MonthlyAnalyticsDefaults = {
   title: "Monthly Analytics",
@@ -42,79 +43,75 @@ export function MonthlyAnalytics({
 
   const selectedMetric = panel.params?.selectedMetric;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      let start: number, end: number;
-      let queryStep = 86400;
+  const fetchData = async () => {
+    let start: number, end: number;
+    let queryStep = 86400;
 
-      if (zoomRange) {
-        [start, end] = zoomRange;
-        const duration = end - start;
-        // If zoomed into less than 7 days, get hourly data
-        if (duration < 86400 * 7) {
-          queryStep = 3600;
-        }
-      } else {
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-        end = Math.floor(now.getTime() / 1000) + 86400; // Midnight tonight
-        start = end - 86400 * 30; // 30 days ago
+    if (zoomRange) {
+      [start, end] = zoomRange;
+      const duration = end - start;
+      // If zoomed into less than 7 days, get hourly data
+      if (duration < 86400 * 7) {
+        queryStep = 3600;
       }
+    } else {
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      end = Math.floor(now.getTime() / 1000) + 86400; // Midnight tonight
+      start = end - 86400 * 30; // 30 days ago
+    }
 
-      const metrics = [
-        {
-          name: "power_watts",
-          label: "Home",
-          tags: { site: "load" },
-        },
-        {
-          name: "power_watts",
-          label: "Solar",
-          tags: { site: "solar" },
-        },
-        {
-          name: "power_watts",
-          label: "Battery",
-          tags: { site: "battery" },
-        },
-        {
-          name: "power_watts",
-          label: "From Grid",
-          tags: { site: "site_import" },
-        },
-        {
-          name: "power_watts",
-          label: "To Grid",
-          tags: { site: "site_export" },
-        },
-      ];
+    const metrics = [
+      {
+        name: "power_watts",
+        label: "Home",
+        tags: { site: "load" },
+      },
+      {
+        name: "power_watts",
+        label: "Solar",
+        tags: { site: "solar" },
+      },
+      {
+        name: "power_watts",
+        label: "Battery",
+        tags: { site: "battery" },
+      },
+      {
+        name: "power_watts",
+        label: "From Grid",
+        tags: { site: "site_import" },
+      },
+      {
+        name: "power_watts",
+        label: "To Grid",
+        tags: { site: "site_export" },
+      },
+    ];
 
-      try {
-        const results = await batchQueryMetrics(
-          metrics,
-          Math.floor(start),
-          Math.ceil(end),
-          queryStep,
-          "integral",
-        );
-        Object.keys(results).forEach((key) => {
-          results[key] = results[key].map((p) => ({
-            ...p,
-            Value: p.Value / 3600,
-          }));
-        });
-        setData(results);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const results = await batchQueryMetrics(
+        metrics,
+        Math.floor(start),
+        Math.ceil(end),
+        queryStep,
+        "integral",
+      );
+      Object.keys(results).forEach((key) => {
+        results[key] = results[key].map((p) => ({
+          ...p,
+          Value: p.Value / 3600, // Ws -> Wh
+        }));
+      });
+      setData(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-    const interval = setInterval(fetchData, 60000);
-    return () => clearInterval(interval);
-  }, [zoomRange]);
+  useDataRefresh(fetchData, 3600000, [zoomRange]);
 
   if (loading)
     return (

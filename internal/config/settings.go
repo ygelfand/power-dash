@@ -36,9 +36,9 @@ func (s StorageOptions) GetPartitionDuration() time.Duration {
 type ProxyOptions struct {
 	ConfigPath         string `mapstructure:"-" yaml:"-" json:"-"`
 	PowerwallOptions   `mapstructure:",squash" yaml:",inline"`
-	RefreshInterval    uint32 `mapstructure:"refresh-interval" yaml:"refresh-interval,omitempty" json:"refresh-interval,omitempty"`
 	CollectionInterval uint32 `mapstructure:"collection-interval" yaml:"collection-interval,omitempty" json:"collection-interval,omitempty"`
-	UIRefreshInterval  uint32 `mapstructure:"ui-refresh-interval" yaml:"ui-refresh-interval,omitempty" json:"ui-refresh-interval,omitempty"`
+	AutoRefresh        bool   `mapstructure:"auto-refresh" yaml:"auto-refresh,omitempty" json:"auto-refresh,omitempty"`
+	DefaultTheme       string `mapstructure:"default-theme" yaml:"default-theme,omitempty" json:"default-theme,omitempty"`
 	LogLevel           string `mapstructure:"log-level" yaml:"log-level,omitempty" json:"log-level,omitempty"`
 	DisableCollector   bool   `mapstructure:"no-collector" yaml:"no-collector,omitempty" json:"no-collector,omitempty"`
 
@@ -52,9 +52,9 @@ func NewDefaultProxyOptions() ProxyOptions {
 		PowerwallOptions: PowerwallOptions{
 			Endpoint: "https://192.168.91.1/",
 		},
-		RefreshInterval:    30,
 		CollectionInterval: 30,
-		UIRefreshInterval:  30,
+		AutoRefresh:        true,
+		DefaultTheme:       "auto",
 		LogLevel:           "info",
 		ListenOn:           ":8080",
 		Storage: StorageOptions{

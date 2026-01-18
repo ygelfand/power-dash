@@ -273,14 +273,8 @@ func (api *Api) getStatus(c *gin.Context) {
 func applyDefaults(cfg *config.ProxyOptions) {
 	defaults := config.NewDefaultProxyOptions()
 
-	if cfg.RefreshInterval == 0 {
-		cfg.RefreshInterval = defaults.RefreshInterval
-	}
 	if cfg.CollectionInterval == 0 {
 		cfg.CollectionInterval = defaults.CollectionInterval
-	}
-	if cfg.UIRefreshInterval == 0 {
-		cfg.UIRefreshInterval = defaults.UIRefreshInterval
 	}
 	if cfg.ListenOn == "" {
 		cfg.ListenOn = defaults.ListenOn
@@ -294,8 +288,9 @@ func applyDefaults(cfg *config.ProxyOptions) {
 	if cfg.LogLevel == "" {
 		cfg.LogLevel = defaults.LogLevel
 	}
-	// Endpoint default is likely handled by UI logic or empty check, but if we want it:
-	// if cfg.Endpoint == "" { cfg.Endpoint = defaults.Endpoint }
+	if cfg.DefaultTheme == "" {
+		cfg.DefaultTheme = defaults.DefaultTheme
+	}
 }
 
 func (api *Api) getSettings(c *gin.Context) {
@@ -339,7 +334,7 @@ func (api *Api) getSettings(c *gin.Context) {
 
 func computeOverrides(file, effective *config.ProxyOptions) map[string]string {
 	overrides := make(map[string]string)
-	
+
 	check := func(key string, fileVal, effVal interface{}) {
 		if fileVal != effVal {
 			overrides[key] = "override"
@@ -348,9 +343,9 @@ func computeOverrides(file, effective *config.ProxyOptions) map[string]string {
 
 	check("endpoint", file.Endpoint, effective.Endpoint)
 	check("password", file.Password, effective.Password)
-	check("refresh-interval", file.RefreshInterval, effective.RefreshInterval)
 	check("collection-interval", file.CollectionInterval, effective.CollectionInterval)
-	check("ui-refresh-interval", file.UIRefreshInterval, effective.UIRefreshInterval)
+	check("auto-refresh", file.AutoRefresh, effective.AutoRefresh)
+	check("default-theme", file.DefaultTheme, effective.DefaultTheme)
 	check("log-level", file.LogLevel, effective.LogLevel)
 	check("no-collector", file.DisableCollector, effective.DisableCollector)
 	check("listen", file.ListenOn, effective.ListenOn)
@@ -402,16 +397,16 @@ func (api *Api) saveSettings(c *gin.Context) {
 
 	updateIfNotOverridden(overrides, "endpoint", &fileConfig.Endpoint, req.Config.Endpoint)
 	updateIfNotOverridden(overrides, "password", &fileConfig.Password, req.Config.Password)
-	updateIfNotOverridden(overrides, "refresh-interval", &fileConfig.RefreshInterval, req.Config.RefreshInterval)
 	updateIfNotOverridden(overrides, "collection-interval", &fileConfig.CollectionInterval, req.Config.CollectionInterval)
-	updateIfNotOverridden(overrides, "ui-refresh-interval", &fileConfig.UIRefreshInterval, req.Config.UIRefreshInterval)
+	updateIfNotOverridden(overrides, "auto-refresh", &fileConfig.AutoRefresh, req.Config.AutoRefresh)
+	updateIfNotOverridden(overrides, "default-theme", &fileConfig.DefaultTheme, req.Config.DefaultTheme)
 	updateIfNotOverridden(overrides, "log-level", &fileConfig.LogLevel, req.Config.LogLevel)
 	updateIfNotOverridden(overrides, "no-collector", &fileConfig.DisableCollector, req.Config.DisableCollector)
 	updateIfNotOverridden(overrides, "listen", &fileConfig.ListenOn, req.Config.ListenOn)
 	updateIfNotOverridden(overrides, "storage.path", &fileConfig.Storage.DataPath, req.Config.Storage.DataPath)
 	updateIfNotOverridden(overrides, "storage.retention", &fileConfig.Storage.Retention, req.Config.Storage.Retention)
 	updateIfNotOverridden(overrides, "storage.partition", &fileConfig.Storage.PartitionDuration, req.Config.Storage.PartitionDuration)
-	
+
 	fileConfig.Dashboards = req.Config.Dashboards
 
 	fWrite, err := os.OpenFile(configPath, os.O_WRONLY|os.O_TRUNC, 0o644)

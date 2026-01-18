@@ -1,11 +1,12 @@
 import { Text, Paper, Box, LoadingOverlay } from "@mantine/core";
 import { IconSun, IconHome, IconPlug, IconBattery } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useResizeObserver } from "@mantine/hooks";
 import { queryLatestMetrics } from "../../data";
 import type { ChartComponentProps, MetricQuery } from "../../data";
 import { Panel } from "../Panel";
 import classes from "../ChartPanel.module.css";
+import { useDataRefresh } from "../../utils";
 
 export const CurrentPowerFlowDefaults = {
   title: "Current State",
@@ -110,34 +111,30 @@ export function CurrentPowerFlow({
   const [values, setValues] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const metrics: MetricQuery[] = [
-        { name: "power_watts", label: "Grid", tags: { site: "site" } },
-        { name: "power_watts", label: "Home", tags: { site: "load" } },
-        { name: "power_watts", label: "Solar", tags: { site: "solar" } },
-        { name: "power_watts", label: "Battery", tags: { site: "battery" } },
-        { name: "battery_soe_percent", label: "SoE" },
-      ];
+  const fetchData = async () => {
+    const metrics: MetricQuery[] = [
+      { name: "power_watts", label: "Grid", tags: { site: "site" } },
+      { name: "power_watts", label: "Home", tags: { site: "load" } },
+      { name: "power_watts", label: "Solar", tags: { site: "solar" } },
+      { name: "power_watts", label: "Battery", tags: { site: "battery" } },
+      { name: "battery_soe_percent", label: "SoE" },
+    ];
 
-      try {
-        const results = await queryLatestMetrics(metrics);
-        const latest: Record<string, number> = {};
-        Object.keys(results).forEach((key) => {
-          latest[key] = results[key].Value;
-        });
-        setValues(latest);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const results = await queryLatestMetrics(metrics);
+      const latest: Record<string, number> = {};
+      Object.keys(results).forEach((key) => {
+        latest[key] = results[key].Value;
+      });
+      setValues(latest);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-    const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  useDataRefresh(fetchData, 30000);
 
   const formatW = (val: number, signed = false) => {
     const abs = Math.abs(val);

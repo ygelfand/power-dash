@@ -241,8 +241,8 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 	if !ctrl.EsCan.Bus.Msa.METERZAcMeasurements.IsMIA {
 		msa := ctrl.EsCan.Bus.Msa.METERZAcMeasurements
 		msaMeters := []store.MeterReading{
-			{Timestamp: now, Site: "site", Phase: utils.ToPtr("1"), Voltage: utils.ToPtr(msa.MeterZVl1G), Power: utils.ToPtr(float64(msa.METERZCTAInstRealPower))},
-			{Timestamp: now, Site: "site", Phase: utils.ToPtr("2"), Voltage: utils.ToPtr(msa.MeterZVl2G), Power: utils.ToPtr(float64(msa.METERZCTBInstRealPower))},
+			{Timestamp: now, Site: "grid_msa", Phase: utils.ToPtr("1"), Voltage: utils.ToPtr(msa.MeterZVl1G), Power: utils.ToPtr(float64(msa.METERZCTAInstRealPower))},
+			{Timestamp: now, Site: "grid_msa", Phase: utils.ToPtr("2"), Voltage: utils.ToPtr(msa.MeterZVl2G), Power: utils.ToPtr(float64(msa.METERZCTBInstRealPower))},
 		}
 		_ = s.InsertMeterReadings(msaMeters)
 	}

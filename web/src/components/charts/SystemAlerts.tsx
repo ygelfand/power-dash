@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Panel } from "../Panel";
 import {
   useChartData,
@@ -6,6 +6,7 @@ import {
   parseTimeframe,
   getContrastingTextColor,
   useSyncedTimeframe,
+  useDataRefresh,
 } from "../../utils";
 import type { ChartComponentProps } from "../../data";
 import {
@@ -49,7 +50,11 @@ export function SystemAlerts({
   const { rawResults, loading } = useChartData(metrics, localTf);
 
   // eslint-disable-next-line react-hooks/purity
-  const [now] = useState(Math.floor(Date.now() / 1000));
+  const [now, setNow] = useState(Math.floor(Date.now() / 1000));
+  
+  useDataRefresh(() => {
+      setNow(Math.floor(Date.now() / 1000));
+  }, 30000);
 
   const { duration, start } = useMemo(() => {
     const d = parseTimeframe(localTf);
