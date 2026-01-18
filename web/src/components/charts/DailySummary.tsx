@@ -18,8 +18,8 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { batchQueryMetrics } from "../../data";
+import { type MetricQuery } from "../../data";
 import { useDataRefresh } from "../../utils";
-
 export const DailySummaryDefaults = {
   title: "Today's Summary",
   component: "DailySummary",
