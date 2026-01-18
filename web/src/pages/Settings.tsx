@@ -346,8 +346,7 @@ export function Settings() {
                     setConfig({ ...config, password: e.target.value })
                   }
                 />
-                <Group grow>
-                </Group>
+                <Group grow></Group>
               </Stack>
             </Card>
           </Grid.Col>
@@ -357,7 +356,7 @@ export function Settings() {
             <Card shadow="sm" radius="md" withBorder>
               <Group mb="md">
                 <IconDatabase size={20} color="var(--mantine-color-teal-6)" />
-                <Text fw={700}>Data Storage (DuckDB)</Text>
+                <Text fw={700}>Data Storage (TSDB)</Text>
               </Group>
               <Stack gap="sm">
                 <TextInput
@@ -388,9 +387,7 @@ export function Settings() {
                     }
                     description="Data age limit (e.g. 7d, 30d, 0s for infinity)"
                     value={config.storage?.retention || ""}
-                    disabled={
-                      !writable || !!overrides["storage.retention"]
-                    }
+                    disabled={!writable || !!overrides["storage.retention"]}
                     onChange={(e) =>
                       setConfig({
                         ...config,
@@ -409,9 +406,7 @@ export function Settings() {
                     }
                     description="Database block duration (e.g. 2h)"
                     value={config.storage?.partition || ""}
-                    disabled={
-                      !writable || !!overrides["storage.partition"]
-                    }
+                    disabled={!writable || !!overrides["storage.partition"]}
                     onChange={(e) =>
                       setConfig({
                         ...config,
@@ -638,8 +633,8 @@ export function Settings() {
               {!importStatus?.active && (
                 <Alert variant="light" color="blue" mt="md">
                   Importing historical data will merge InfluxDB records into
-                  your local DuckDB database. This process runs in the
-                  background and may take several minutes for large date ranges.
+                  your local TSDB database. This process runs in the background
+                  and may take several minutes for large date ranges.
                 </Alert>
               )}
             </Card>

@@ -147,7 +147,7 @@ func (m *Manager) runCollection() {
 
 	m.logger.Debug("Collection cycle started")
 	start := time.Now()
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second) // Increased timeout for DuckDB batch writes
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 
 	for _, c := range m.collectors {

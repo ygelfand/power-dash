@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 	"github.com/ygelfand/power-dash/internal/config"
 	"github.com/ygelfand/power-dash/internal/importer"
 	"github.com/ygelfand/power-dash/internal/powerwall/queries"
@@ -299,7 +300,7 @@ func (api *Api) getSettings(c *gin.Context) {
 		return
 	}
 
-	configPath := api.options.ConfigPath
+	configPath := viper.ConfigFileUsed()
 	writable := false
 	var fileConfig config.ProxyOptions
 
@@ -372,7 +373,7 @@ func (api *Api) saveSettings(c *gin.Context) {
 		return
 	}
 
-	configPath := api.options.ConfigPath
+	configPath := viper.ConfigFileUsed()
 	if configPath == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No config file in use, cannot save."})
 		return
