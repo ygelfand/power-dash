@@ -5,47 +5,29 @@ import {
   useComputedColorScheme,
   Affix,
   Group,
-  Title,
   Box,
-  Image,
   SegmentedControl,
-  Stack,
-  Collapse,
   Loader,
   Center,
   Tooltip,
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import "@mantine/notifications/styles.css";
-import { useDisclosure } from "@mantine/hooks";
 import {
   IconSun,
   IconMoon,
-  IconSettings,
-  IconInfoCircle,
-  IconHelp,
-  IconHome,
-  IconTool,
   IconPlayerPause,
   IconPlayerPlay,
   IconRefresh,
 } from "@tabler/icons-react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  Link,
-  useLocation,
-} from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect } from "react";
-import { Tagline } from "./components/Tagline";
 import { FloatingSidebar } from "./components/FloatingSidebar";
 import {
   TimeframeProvider,
   useGlobalTimeframe,
 } from "./contexts/TimeframeContext";
 import { RefreshProvider, useRefresh } from "./contexts/RefreshContext";
-import classes from "./App.module.css";
 
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((module) => ({ default: module.Dashboard })),
@@ -66,7 +48,6 @@ function AppContent() {
   const computedColorScheme = useComputedColorScheme("light", {
     getInitialValueInEffect: true,
   });
-  const [opened, { toggle, close }] = useDisclosure(false);
   const { globalTimeframe, setGlobalTimeframe, isMixed } = useGlobalTimeframe();
   const { isPaused, setPaused, manualRefresh, isRefreshing } = useRefresh();
   const location = useLocation();
