@@ -67,7 +67,6 @@ export function Dashboard() {
   const currentDashboard = (dashboards || []).find(
     (d) => d.name === selectedDashboard,
   );
-  console.log(currentDashboard?.panels);
   return (
     <div>
       <Grid gutter="md">

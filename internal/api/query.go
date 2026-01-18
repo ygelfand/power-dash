@@ -310,11 +310,17 @@ func (api *Api) getSettings(c *gin.Context) {
 			f, err := os.OpenFile(configPath, os.O_RDWR, info.Mode())
 			if err == nil {
 				writable = true
-				// Try to read the file config
-				dec := yaml.NewDecoder(f)
-				_ = dec.Decode(&fileConfig)
-				f.Close()
+			} else {
+				// Try to read the file config as read-only
+				f, err = os.OpenFile(configPath, os.O_RDONLY, info.Mode())
 			}
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			dec := yaml.NewDecoder(f)
+			_ = dec.Decode(&fileConfig)
+			f.Close()
 		}
 	}
 
