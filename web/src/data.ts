@@ -25,6 +25,7 @@ export interface PanelConfig {
   title: string;
   component: string;
   size: number;
+  height?: number;
   params?: Record<string, any>;
   showLegend?: boolean;
 }
@@ -35,6 +36,7 @@ export interface RawPanelConfig {
   title?: string;
   component?: string;
   size?: number;
+  height?: number;
   params?: Record<string, any>;
   showLegend?: boolean;
 }
@@ -82,10 +84,12 @@ export async function fetchDashboards(): Promise<DashboardConfig[]> {
             return {
             ...def,
             ...p,
-            title: p.title || (def.title as string) || p.name,
-            component: p.component || (def.component as string),
-            size: p.size || (def.size as number) || 12,
-            showLegend:
+                      title: p.title || (def.title as string) || p.name,
+                      component: p.component || (def.component as string),
+                      size: p.size || (def.size as number) || 12,
+                      height: p.height || (def.height as number),
+                      showLegend:
+            
                 p.showLegend !== undefined
                 ? p.showLegend
                 : (def.showLegend as boolean),

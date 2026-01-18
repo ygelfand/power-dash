@@ -17,6 +17,7 @@ import { GridHealth, GridHealthDefaults } from './GridHealth';
 import { SolarEfficiency, SolarEfficiencyDefaults } from './SolarEfficiency';
 import { YearlyAnalytics, YearlyAnalyticsDefaults } from './YearlyAnalytics';
 import { PhaseBalance, PhaseBalanceDefaults } from './PhaseBalance';
+import { DailySummary, DailySummaryDefaults } from './DailySummary';
 import type { PanelConfig } from '../../data';
 
 export const ComponentRegistry: Record<string, any> = {
@@ -24,6 +25,7 @@ export const ComponentRegistry: Record<string, any> = {
     "YearlyAnalytics": YearlyAnalytics,
     "PowerFlow": PowerFlow,
     "CurrentPowerFlow": CurrentPowerFlow,
+    "DailySummary": DailySummary,
     "BatteryLevel": BatteryLevel,
     "GridFrequency": GridFrequency,
     "GridVoltage": GridVoltage,
@@ -44,6 +46,7 @@ export const ComponentRegistry: Record<string, any> = {
 export const PanelDefaults: Record<string, Partial<PanelConfig>> = {
     "power-flow": PowerFlowDefaults,
     "current-power-flow": CurrentPowerFlowDefaults,
+    "daily-summary": DailySummaryDefaults,
     "grid-frequency": GridFrequencyDefaults,
     "monthly-analytics": MonthlyAnalyticsDefaults,
     "battery-level": BatteryLevelDefaults,

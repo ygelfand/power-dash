@@ -16,6 +16,7 @@ dashboards:
     panels:
       - name: current-power-flow
       - name: power-flow
+      - name: daily-summary
       - name: monthly-analytics
       - name: battery-level
       - name: string-voltage

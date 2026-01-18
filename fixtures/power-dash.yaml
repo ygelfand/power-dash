@@ -2,6 +2,7 @@ endpoint: "https://192.168.91.1/"
 password: "YOUR_PASSWORD"
 collection-interval: 30
 auto-refresh: true
+debug: true
 default-theme: auto # auto, light, dark
 log-level: debug
 storage:
@@ -14,6 +15,7 @@ dashboards:
     panels:
       - name: current-power-flow
       - name: power-flow
+      - name: daily-summary
       - name: monthly-analytics
       - name: battery-level
       - name: string-voltage

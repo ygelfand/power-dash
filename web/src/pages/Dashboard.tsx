@@ -67,7 +67,7 @@ export function Dashboard() {
   const currentDashboard = (dashboards || []).find(
     (d) => d.name === selectedDashboard,
   );
-
+  console.log(currentDashboard?.panels);
   return (
     <div>
       <Grid gutter="md">
@@ -79,6 +79,7 @@ export function Dashboard() {
           >
             <ErrorBoundary>
               <DynamicPanel
+                height={panel.height || 300}
                 panel={panel}
                 timeframe={
                   panelTimeframes[panel.name] || globalTimeframe || "24h"
