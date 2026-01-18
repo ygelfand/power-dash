@@ -15,6 +15,7 @@ import {
   IconInfoCircle,
   IconTool,
   IconHelp,
+  IconCoin,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import classes from "../App.module.css";
@@ -74,6 +75,19 @@ export function FloatingSidebar() {
               onClick={close}
             >
               <IconHome size={24} />
+            </ActionIcon>
+
+            <ActionIcon
+              component={Link}
+              to="/cost"
+              radius="xl"
+              size="xl"
+              variant="default"
+              aria-label="Cost"
+              title="Cost Analysis"
+              onClick={close}
+            >
+              <IconCoin size={24} />
             </ActionIcon>
 
             <ActionIcon

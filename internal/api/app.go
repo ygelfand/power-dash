@@ -97,6 +97,7 @@ func (api *Api) Handler() http.Handler {
 			v1.POST("/import/test", api.testImport)
 			v1.POST("/import/run", api.runImport)
 			v1.GET("/import/status", api.getImportStatus)
+			v1.GET("/config", api.getConfig)
 		}
 	}
 

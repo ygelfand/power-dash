@@ -13,6 +13,7 @@ import {
 } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import "@mantine/notifications/styles.css";
+import "@mantine/code-highlight/styles.css";
 import {
   IconSun,
   IconMoon,
@@ -28,12 +29,16 @@ import {
   useGlobalTimeframe,
 } from "./contexts/TimeframeContext";
 import { RefreshProvider, useRefresh } from "./contexts/RefreshContext";
+import { ConfigProvider } from "./contexts/ConfigContext";
 
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((module) => ({ default: module.Dashboard })),
 );
 const Settings = lazy(() =>
   import("./pages/Settings").then((module) => ({ default: module.Settings })),
+);
+const Cost = lazy(() =>
+  import("./pages/Cost").then((module) => ({ default: module.Cost })),
 );
 const Status = lazy(() => import("./pages/Status"));
 const Troubleshoot = lazy(() => import("./pages/Troubleshoot"));
@@ -243,6 +248,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/cost" element={<Cost />} />
             <Route path="/status" element={<Status />} />
             <Route path="/troubleshoot" element={<Troubleshoot />} />
             <Route
@@ -261,7 +267,9 @@ export default function App() {
     <BrowserRouter>
       <RefreshProvider>
         <TimeframeProvider>
-          <AppContent />
+          <ConfigProvider>
+            <AppContent />
+          </ConfigProvider>
         </TimeframeProvider>
       </RefreshProvider>
     </BrowserRouter>

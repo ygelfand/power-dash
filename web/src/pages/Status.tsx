@@ -1,6 +1,7 @@
-import { Container, Title, Grid, Card, Text, Badge, Group, Stack, Table, Loader, Center, Divider, Tooltip } from "@mantine/core";
-import { IconCpu, IconInfoCircle, IconActivity, IconBolt, IconSun, IconGauge, IconAlertTriangle, IconWorld, IconShieldCheck } from "@tabler/icons-react";
+import { Container, Title, Grid, Card, Text, Badge, Group, Stack, Table, Loader, Center, Divider, Tooltip, SimpleGrid } from "@mantine/core";
+import { IconCpu, IconInfoCircle, IconActivity, IconBolt, IconSun, IconGauge, IconAlertTriangle, IconWorld, IconShieldCheck, IconCoin, IconTruck } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
+import { useConfig } from "../contexts/ConfigContext";
 
 interface StatusData {
   system: {
@@ -70,6 +71,7 @@ function formatGitHash(hash: any): string {
 export default function Status() {
   const [data, setData] = useState<StatusData | null>(null);
   const [loading, setLoading] = useState(true);
+  const { config } = useConfig();
 
   useEffect(() => {
     fetch("/api/v1/status")
@@ -101,9 +103,7 @@ export default function Status() {
 
   const activePINVs = live?.esCan?.bus?.PINV?.filter(c => !c.PINV_Status?.isMIA) || [];
   const activePVACs = live?.esCan?.bus?.PVAC?.filter(c => !c.PVAC_Status?.isMIA) || [];
-  const activePVSs = live?.esCan?.bus?.PVS?.filter(c => !c.PVS_Status?.isMIA) || [];
   const activePODs = live?.esCan?.bus?.POD?.filter(c => c.POD_EnergyStatus && !c.POD_EnergyStatus.isMIA) || [];
-  const neurios = live?.neurio?.readings || [];
   const systemAlerts = live?.control?.alerts?.active || [];
 
   return (
@@ -116,6 +116,7 @@ export default function Status() {
             <Group gap="xs" mt={4}>
                 <Badge variant="outline" color="gray" radius="xs" size="sm">FW: {system?.version || "N/A"}</Badge>
                 <Badge variant="outline" color="gray" radius="xs" size="sm">DIN: {system?.din || "N/A"}</Badge>
+                {config?.vin && <Badge variant="outline" color="gray" radius="xs" size="sm">VIN: {config.vin}</Badge>}
             </Group>
           </Stack>
           <Badge size="xl" variant="dot" color={live?.control?.islanding?.gridOK ? "green" : "red"}>
@@ -125,7 +126,7 @@ export default function Status() {
 
         <Grid>
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
               <Group mb="xs">
                 <IconActivity size={24} color="var(--mantine-color-blue-6)" />
                 <Text fw={700}>System Health</Text>
@@ -152,7 +153,7 @@ export default function Status() {
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
               <Group mb="xs">
                 <IconWorld size={24} color="var(--mantine-color-teal-6)" />
                 <Text fw={700}>Grid Configuration</Text>
@@ -175,7 +176,7 @@ export default function Status() {
           </Grid.Col>
 
           <Grid.Col span={{ base: 12, md: 4 }}>
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
+            <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
               <Group mb="xs">
                 <IconShieldCheck size={24} color="var(--mantine-color-violet-6)" />
                 <Text fw={700}>Inventory Summary</Text>
@@ -197,6 +198,64 @@ export default function Status() {
             </Card>
           </Grid.Col>
         </Grid>
+
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="lg">
+            {config?.site_info?.tariff_content && (
+            <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Group mb="xs">
+                <IconCoin size={24} color="var(--mantine-color-green-6)" />
+                <Text fw={700}>Tariff & Site Info</Text>
+                </Group>
+                <Stack gap="xs">
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Tariff Name</Text>
+                        <Text size="sm" fw={500}>{config.site_info.tariff_content.name}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Tariff Code</Text>
+                        <Badge variant="outline" color="green">{config.site_info.tariff_content.code}</Badge>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Export Rule</Text>
+                        <Badge variant="light" color="cyan">{config.site_info.customer_preferred_export_rule || "N/A"}</Badge>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Commissioned</Text>
+                        <Text size="sm">{config.site_info.battery_commission_date ? new Date(config.site_info.battery_commission_date).toLocaleDateString() : "N/A"}</Text>
+                    </Group>
+                </Stack>
+            </Card>
+            )}
+
+            {config?.installer && (
+            <Card shadow="sm" padding="lg" radius="md" withBorder>
+                <Group mb="xs">
+                <IconTruck size={24} color="var(--mantine-color-orange-6)" />
+                <Text fw={700}>Installer & Support</Text>
+                </Group>
+                <Stack gap="xs">
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Company</Text>
+                        <Text size="sm" fw={500}>{config.installer.company || "N/A"}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Phone</Text>
+                        <Text size="sm">{config.installer.phone || "N/A"}</Text>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Installation Type</Text>
+                        <Badge variant="light" color="orange">{config.installer.solar_installation_type || "N/A"}</Badge>
+                    </Group>
+                    <Group justify="space-between">
+                        <Text size="sm" c="dimmed">Customer Status</Text>
+                        <Badge color={config.customer?.registered ? "teal" : "gray"} variant="outline">
+                            {config.customer?.registered ? "Registered" : "Unregistered"}
+                        </Badge>
+                    </Group>
+                </Stack>
+            </Card>
+            )}
+        </SimpleGrid>
 
         {systemAlerts.length > 0 && (
           <Card 
@@ -220,7 +279,7 @@ export default function Status() {
           </Card>
         )}
 
-        <Divider label="Hardware Components" labelPosition="center" />
+        <Divider label="Detailed Components" labelPosition="center" />
 
         <Card shadow="sm" radius="md" withBorder p={0}>
           <Table verticalSpacing="sm" highlightOnHover>
@@ -228,7 +287,7 @@ export default function Status() {
               <Table.Tr>
                 <Table.Th>Component</Table.Th>
                 <Table.Th>Identifier</Table.Th>
-                <Table.Th>Firmware</Table.Th>
+                <Table.Th>Hardware Details</Table.Th>
                 <Table.Th>Status</Table.Th>
               </Table.Tr>
             </Table.Thead>
@@ -238,17 +297,27 @@ export default function Status() {
                 <Table.Tr>
                   <Table.Td><Group gap="xs"><IconInfoCircle size={16} /><Text size="sm" fw={500}>Backup Gateway</Text></Group></Table.Td>
                   <Table.Td><Text size="xs" ff="monospace">{live.components?.msa?.[2]?.serialNumber || live.components?.msa?.[0]?.serialNumber || "N/A"}</Text></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">{live.components?.msa?.[2]?.signals?.find((s: any) => s.name === "MSA_appGitHash")?.textValue || "N/A"}</Text></Table.Td>
+                  <Table.Td><Text size="xs">FW: {live.components?.msa?.[2]?.signals?.find((s: any) => s.name === "MSA_appGitHash")?.textValue || "N/A"}</Text></Table.Td>
                   <Table.Td><Badge size="xs" color="green">ONLINE</Badge></Table.Td>
                 </Table.Tr>
               )}
+
+              {/* Powerwalls (POD) */}
+              {activePODs.map((_, i) => (
+                <Table.Tr key={`pod-${i}`}>
+                  <Table.Td><Group gap="xs"><IconCpu size={16} color="teal" /><Text size="sm" fw={500}>Powerwall Pack {i}</Text></Group></Table.Td>
+                  <Table.Td><Text size="xs" ff="monospace">{config?.battery_blocks?.[i]?.vin || live?.control?.batteryBlocks?.[i]?.din?.split('#')[1] || "N/A"}</Text></Table.Td>
+                  <Table.Td><Text size="xs">SOE: {config?.battery_blocks?.[i]?.min_soe}% - {config?.battery_blocks?.[i]?.max_soe}%</Text></Table.Td>
+                  <Table.Td><Badge size="xs" variant="light" color="teal">HEALTHY</Badge></Table.Td>
+                </Table.Tr>
+              ))}
 
               {/* Battery Inverters (PINV) */}
               {activePINVs.map((m, i) => (
                 <Table.Tr key={`pinv-${i}`}>
                   <Table.Td><Group gap="xs"><IconBolt size={16} color="orange" /><Text size="sm" fw={500}>Battery Inverter {i}</Text></Group></Table.Td>
                   <Table.Td><Text size="xs" ff="monospace">Internal</Text></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">-</Text></Table.Td>
+                  <Table.Td><Text size="xs">-</Text></Table.Td>
                   <Table.Td>
                     <Group gap={4}>
                       <Badge size="xs" variant="light" color="green">{m.PINV_Status?.PINV_State?.replace('PINV_', '') || 'Active'}</Badge>
@@ -263,7 +332,7 @@ export default function Status() {
                 <Table.Tr key={`pvac-${i}`}>
                   <Table.Td><Group gap="xs"><IconSun size={16} color="yellow" /><Text size="sm" fw={500}>Solar Inverter {i}</Text></Group></Table.Td>
                   <Table.Td><Text size="xs" ff="monospace">{m.packageSerialNumber || "N/A"}</Text></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">{formatGitHash(m.PVAC_InfoMsg?.PVAC_appGitHash)}</Text></Table.Td>
+                  <Table.Td><Text size="xs">FW: {formatGitHash(m.PVAC_InfoMsg?.PVAC_appGitHash)}</Text></Table.Td>
                   <Table.Td>
                     <Group gap={4}>
                       <Badge size="xs" variant="light" color="yellow">{m.PVAC_Status?.PVAC_State?.replace('PVAC_', '') || 'Active'}</Badge>
@@ -274,7 +343,7 @@ export default function Status() {
               ))}
 
               {/* Solar Strings (PVS) */}
-              {activePVSs.map((m, i) => (
+              {live?.esCan?.bus?.PVS?.filter(c => !c.PVS_Status?.isMIA).map((m, i) => (
                 <Table.Tr key={`pvs-${i}`}>
                   <Table.Td><Group gap="xs"><IconSun size={16} color="yellow" /><Text size="sm" fw={500}>Solar String Ctrl {i}</Text></Group></Table.Td>
                   <Table.Td>
@@ -294,23 +363,28 @@ export default function Status() {
                 </Table.Tr>
               ))}
 
-              {/* Powerwalls (POD) */}
-              {activePODs.map((m, i) => (
-                <Table.Tr key={`pod-${i}`}>
-                  <Table.Td><Group gap="xs"><IconCpu size={16} color="teal" /><Text size="sm" fw={500}>Powerwall Pack {i}</Text></Group></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">{live?.control?.batteryBlocks?.[i]?.din?.split('#')[1] || "N/A"}</Text></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">{formatGitHash(m.POD_InfoMsg?.POD_appGitHash)}</Text></Table.Td>
-                  <Table.Td><Badge size="xs" variant="light" color="teal">HEALTHY</Badge></Table.Td>
+              {/* Neurio & Metering Infrastructure */}
+              {config?.meters?.map((m, i) => (
+                <Table.Tr key={`meter-${i}`}>
+                  <Table.Td><Group gap="xs"><IconGauge size={16} color="violet" /><Text size="sm" fw={500}>Meter: {m.location}</Text></Group></Table.Td>
+                  <Table.Td><Text size="xs" ff="monospace">{m.connection?.device_serial || "N/A"}</Text></Table.Td>
+                  <Table.Td>
+                      <Stack gap={0}>
+                        <Text size="xs">Type: {m.type}</Text>
+                        {m.connection?.ip_address && <Text size="xs">IP: {m.connection.ip_address}</Text>}
+                      </Stack>
+                  </Table.Td>
+                  <Table.Td><Badge size="xs" variant="light" color="violet">CONFIGURED</Badge></Table.Td>
                 </Table.Tr>
               ))}
 
-              {/* Neurio Meters */}
-              {neurios.map((m: any, i: number) => (
-                <Table.Tr key={`neurio-${i}`}>
-                  <Table.Td><Group gap="xs"><IconGauge size={16} color="violet" /><Text size="sm" fw={500}>Neurio Meter</Text></Group></Table.Td>
+              {/* Live Neurio Readings (if any not covered by config or for status) */}
+              {live?.neurio?.readings?.map((m: any, i: number) => (
+                <Table.Tr key={`neurio-live-${i}`}>
+                  <Table.Td><Group gap="xs"><IconGauge size={16} color="violet" /><Text size="sm" fw={500}>Neurio Live</Text></Group></Table.Td>
                   <Table.Td><Text size="xs" ff="monospace">{m.serial}</Text></Table.Td>
-                  <Table.Td><Text size="xs" ff="monospace">{m.firmwareVersion || "N/A"}</Text></Table.Td>
-                  <Table.Td><Badge size="xs" variant="light" color="violet">ONLINE</Badge></Table.Td>
+                  <Table.Td><Text size="xs">FW: {m.firmwareVersion || "N/A"}</Text></Table.Td>
+                  <Table.Td><Badge size="xs" variant="light" color="green">ONLINE</Badge></Table.Td>
                 </Table.Tr>
               ))}
             </Table.Tbody>

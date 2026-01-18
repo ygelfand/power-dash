@@ -1,9 +1,12 @@
-import { Container, Title, Grid, Card, Text, Badge, Group, Stack, Button, Select, Code, Center, ScrollArea, Paper, ActionIcon, Tooltip, CopyButton } from "@mantine/core";
+import { Container, Title, Grid, Card, Text, Badge, Group, Stack, Button, Select, Center, ScrollArea, Paper, ActionIcon, Tooltip, CopyButton } from "@mantine/core";
+import { CodeHighlight } from "@mantine/code-highlight";
+import '@mantine/code-highlight/styles.css';
 import { IconTool, IconPlayerPlay, IconBug, IconDownload, IconCheck, IconX, IconSearch, IconCopy, IconDeviceFloppy } from "@tabler/icons-react";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
 
 const KNOWN_QUERIES = [
+  "SystemConfig",
   "SelfTestQuery",
   "DeviceControllerQuery",
   "DeviceControllerQueryV2",
@@ -16,6 +19,7 @@ const KNOWN_QUERIES = [
 ];
 
 const COLLECTORS = [
+    "ConfigCollector",
     "DeviceCollector",
     "GridCollector",
     "AggregatesCollector",
@@ -84,11 +88,16 @@ export default function Troubleshoot() {
     if (!selectedQuery) return;
     setQueryLoading(true);
     try {
-      const resp = await fetch("/api/v1/debug/query", {
+      const url = selectedQuery === "SystemConfig" ? "/api/v1/config" : "/api/v1/debug/query";
+      const options = selectedQuery === "SystemConfig" ? {
+        method: "GET"
+      } : {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: selectedQuery, params: "" })
-      });
+      };
+      
+      const resp = await fetch(url, options);
       const data = await resp.json();
       setQueryResult(data);
     } catch (e: any) {
@@ -255,9 +264,12 @@ export default function Troubleshoot() {
 
               <ScrollArea h={400} type="always" offsetScrollbars>
                 {queryResult ? (
-                    <Code block ff="monospace" style={{ fontSize: '11px' }}>
-                        {JSON.stringify(queryResult, null, 2)}
-                    </Code>
+                    <CodeHighlight 
+                        code={JSON.stringify(queryResult, null, 2)} 
+                        language="json"
+                        withCopyButton={false}
+                        style={{ fontSize: '11px' }}
+                    />
                 ) : (
                     <Center h="100%">
                         <Stack align="center" gap={4}>

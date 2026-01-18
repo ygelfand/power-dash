@@ -499,6 +499,15 @@ func (api *Api) downloadTechBundle(c *gin.Context) {
 		}
 	}
 
+	// 1b. Fetch System Config
+	sysConfig := api.powerwall.GetConfig()
+	if sysConfig != nil {
+		f, _ := zw.Create("config.json")
+		var pretty bytes.Buffer
+		_ = json.Indent(&pretty, []byte(*sysConfig), "", "  ")
+		_, _ = f.Write(pretty.Bytes())
+	}
+
 	// 2. Export Config (sanitized)
 	conf, _ := yaml.Marshal(api.options)
 	f, _ := zw.Create("config.yaml")

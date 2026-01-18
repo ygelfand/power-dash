@@ -80,6 +80,7 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 				cm.Register(collector.NewGridCollector(pwr))
 				cm.Register(collector.NewAggregatesCollector(pwr))
 				cm.Register(collector.NewSoeCollector(pwr))
+				cm.Register(collector.NewConfigCollector(pwr, logger))
 				cm.Start()
 				defer cm.Stop()
 			} else {
