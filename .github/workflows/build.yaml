@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "dev"
+      - "main"
     tags:
       - "v*"
 jobs:
@@ -28,18 +29,17 @@ jobs:
           images: ygelfand/power-dash
           tags: |
             type=ref,event=branch
-            type=semver,pattern={{version}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
-            type=semver,pattern={{major}}.{{minor}},enable=${{ !startsWith(github.ref, 'refs/tags/v0.') }}
-            type=semver,pattern={{major}}.{{minor}}.{{patch}}
-            type=sha,prefix={{branch}}-,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
-            type=raw,value={{branch}}-latest,enable=${{ !startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{version}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=semver,pattern={{major}},enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=sha,format=short,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
           context: .
           build-args: |
-            "BUILD_VERSION=${{ steps.meta.outputs.version }}-${GITHUB_SHA::8}"
+            "BUILD_VERSION=${{ steps.meta.outputs.version }}"
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
