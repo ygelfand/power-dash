@@ -40,13 +40,13 @@ func (p *PowerwallGateway) GetConfig() *string {
 	reqbody, err := proto.Marshal(pm)
 	resp, err := p.makeTedRequest("POST", "v1", bytes.NewBuffer(reqbody))
 	if err != nil {
-		p.logger.Error("Failed to get config", zap.Error(err))
+		p.logger.Error("Failed to get config", zap.Error(err), zap.String("response", string(resp)))
 		return nil
 	}
 	pr := &ParentMessage{}
 	err = proto.Unmarshal(resp, pr)
 	if err != nil {
-		p.logger.Error("Failed to unmarshal config response", zap.Error(err))
+		p.logger.Error("Failed to unmarshal config response", zap.Error(err), zap.String("response", string(resp)))
 		return nil
 	}
 	return &pr.Message.Config.GetRecv().File.Text

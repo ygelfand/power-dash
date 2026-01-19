@@ -21,12 +21,14 @@ func NewDebugConfigCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra
 				return
 			}
 			debug := pwr.GetConfig()
-			var prettyJSON bytes.Buffer
-			err := json.Indent(&prettyJSON, []byte(*debug), "", "\t")
-			if err != nil {
-				logger.Error("JSON parse error", zap.Error(err))
+			if debug != nil {
+				var prettyJSON bytes.Buffer
+				err := json.Indent(&prettyJSON, []byte(*debug), "", "\t")
+				if err != nil {
+					logger.Error("JSON parse error", zap.Error(err))
+				}
+				cmd.Println(string(prettyJSON.Bytes()))
 			}
-			cmd.Println(string(prettyJSON.Bytes()))
 		},
 	}
 }
