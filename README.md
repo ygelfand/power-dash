@@ -29,8 +29,61 @@
 
 ### Prerequisites
 
-- A Tesla Powerwall Gateway _on your local network routable via the gateways wifi interface_.
-- Your Powerwall installer password (wifi password).
+- **Gateway Access**: Your computer must have access to `192.168.91.1`. This is typically achieved by connecting directly to the Powerwall Gateway's built-in WiFi network or by routing traffic through a device that is.
+- **Installer Password**: You will need your Powerwall/Gateway password. This is usually found on the **QR sticker** located inside your gateway enclosure or on its side.
+
+### Self-Hosting Options
+
+#### Method 1: Docker (Recommended)
+
+The easiest way to run Power Dash is using the official Docker image.
+
+```bash
+docker run -d \
+  --name power-dash \
+  -p 8080:8080 \
+  -v ./data:/app/data \
+  -e PASSWORD="YOUR_GATEWAY_PASSWORD" \
+  -e ENDPOINT="https://192.168.91.1/" \
+  ygelfand/power-dash:latest
+```
+
+#### Method 2: Standalone Binary
+
+Download the appropriate binary for your operating system from the [Releases](https://github.com/ygelfand/power-dash/releases) page.
+
+1. **Make Executable** (Linux/macOS):
+   ```bash
+   chmod +x power-dash
+   ```
+
+2. **Run**:
+   ```bash
+   ./power-dash run --password "YOUR_GATEWAY_PASSWORD" --endpoint "https://192.168.91.1/"
+   ```
+
+### Configuration
+
+Power Dash can be configured via command-line flags, environment variables, or a configuration file (`power-dash.yaml`).
+
+| Option | Flag | Environment Variable | Description |
+|--------|------|----------------------|-------------|
+| Endpoint | `--endpoint` | `ENDPOINT` | Gateway URL (default: `https://192.168.91.1/`) |
+| Password | `--password` | `PASSWORD` | Installer password from QR sticker |
+| Port | `--listen` | `LISTEN` | Address to listen on (default: `:8080`) |
+| Retention | `--storage-retention` | `STORAGE_RETENTION` | Data retention period (default: `168h`) |
+
+**Example `power-dash.yaml`:**
+
+```yaml
+endpoint: "https://192.168.91.1/"
+password: "YOUR_INSTALLER_PASSWORD"
+collection-interval: 5
+log-level: "info"
+storage:
+  path: "./data"
+  retention: "720h" # 30 days
+```
 
 ### Running Locally (Development)
 
