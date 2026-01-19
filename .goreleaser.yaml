@@ -22,7 +22,7 @@ builds:
       - -s -w -X github.com/ygelfand/power-dash/internal/cli.PowerDashVersion={{.Version}}
 
 archives:
-  - format: binary
+  - formats: [binary]
     name_template: >-
       {{ .ProjectName }}_
       {{- .Version }}_
@@ -33,14 +33,14 @@ archives:
       {{- if .Arm }}v{{ .Arm }}{{ end }}
 
 checksum:
-  name_template: 'checksums.txt'
+  name_template: checksums.txt
 
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ .Tag }}-next"
 
 changelog:
   sort: asc
   filters:
     exclude:
-      - '^docs:'
-      - '^test:'
+      - "^docs:"
+      - "^test:"
