@@ -1,5 +1,8 @@
 import { Text, Paper, Box, LoadingOverlay } from "@mantine/core";
-import { IconSun, IconHome, IconPlug, IconBattery } from "@tabler/icons-react";
+import { IconHome, IconBattery } from "@tabler/icons-react";
+import { PiSolarPanelFill } from "react-icons/pi";
+import { LuUtilityPole } from "react-icons/lu";
+
 import { useState } from "react";
 import { useResizeObserver } from "@mantine/hooks";
 import { queryLatestMetrics } from "../../data";
@@ -284,7 +287,10 @@ export function CurrentPowerFlow({
             title="Solar"
             value={formatW(pSolar, true)}
             icon={
-              <IconSun size={iconSize} color="var(--mantine-color-yellow-7)" />
+              <PiSolarPanelFill
+                size={iconSize}
+                color="var(--mantine-color-yellow-7)"
+              />
             }
             color="yellow"
             bgColor="yellow.1"
@@ -324,7 +330,10 @@ export function CurrentPowerFlow({
             title="Grid"
             value={formatW(pGrid, true)}
             icon={
-              <IconPlug size={iconSize} color="var(--mantine-color-red-7)" />
+              <LuUtilityPole
+                size={iconSize}
+                color="var(--mantine-color-red-7)"
+              />
             }
             color="red"
             bgColor="red.1"

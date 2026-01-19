@@ -9,13 +9,14 @@ import {
   Stack,
 } from "@mantine/core";
 import {
-  IconSun,
   IconBattery,
   IconHome,
-  IconTower,
   IconArrowUpRight,
   IconArrowDownLeft,
 } from "@tabler/icons-react";
+import { LuUtilityPole } from "react-icons/lu";
+import { PiSolarPanelFill } from "react-icons/pi";
+
 import { useState } from "react";
 import { batchQueryMetrics } from "../../data";
 import { type MetricQuery } from "../../data";
@@ -168,7 +169,7 @@ export function DailySummary() {
         title="Solar Production"
         value={formatValue(solar)}
         unit={getUnit(solar)}
-        icon={IconSun}
+        icon={PiSolarPanelFill}
         color="yellow"
       />
       <StatCard
@@ -182,7 +183,7 @@ export function DailySummary() {
         title="Net Grid"
         value={formatValue(gridNet)}
         unit={getUnit(gridNet)}
-        icon={IconTower}
+        icon={LuUtilityPole}
         color={gridNet >= 0 ? "red" : "teal"}
         iconRight={
           gridNet >= 0 ? (
