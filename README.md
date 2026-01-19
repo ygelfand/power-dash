@@ -43,8 +43,7 @@ docker run -d \
   --name power-dash \
   -p 8080:8080 \
   -v ./data:/app/data \
-  -e PASSWORD="YOUR_GATEWAY_PASSWORD" \
-  -e ENDPOINT="https://192.168.91.1/" \
+  -e POWER_DASH_PASSWORD="YOUR_GATEWAY_PASSWORD" \
   ygelfand/power-dash:latest
 ```
 
@@ -53,25 +52,25 @@ docker run -d \
 Download the appropriate binary for your operating system from the [Releases](https://github.com/ygelfand/power-dash/releases) page.
 
 1. **Make Executable** (Linux/macOS):
+
    ```bash
    chmod +x power-dash
    ```
 
 2. **Run**:
    ```bash
-   ./power-dash run --password "YOUR_GATEWAY_PASSWORD" --endpoint "https://192.168.91.1/"
+   ./power-dash run --password "YOUR_GATEWAY_PASSWORD"
    ```
 
 ### Configuration
 
 Power Dash can be configured via command-line flags, environment variables, or a configuration file (`power-dash.yaml`).
 
-| Option | Flag | Environment Variable | Description |
-|--------|------|----------------------|-------------|
-| Endpoint | `--endpoint` | `ENDPOINT` | Gateway URL (default: `https://192.168.91.1/`) |
-| Password | `--password` | `PASSWORD` | Installer password from QR sticker |
-| Port | `--listen` | `LISTEN` | Address to listen on (default: `:8080`) |
-| Retention | `--storage-retention` | `STORAGE_RETENTION` | Data retention period (default: `168h`) |
+| Option   | Flag         | Environment Variable  | Description                                    |
+| -------- | ------------ | --------------------- | ---------------------------------------------- |
+| Endpoint | `--endpoint` | `POWER_DASH_ENDPOINT` | Gateway URL (default: `https://192.168.91.1/`) |
+| Password | `--password` | `POWER_DASH_PASSWORD` | Installer password from QR sticker             |
+| Port     | `--listen`   | `POWER_DASH_LISTEN`   | Address to listen on (default: `:8080`)        |
 
 **Example `power-dash.yaml`:**
 
