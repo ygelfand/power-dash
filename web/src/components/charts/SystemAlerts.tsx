@@ -52,9 +52,9 @@ export function SystemAlerts({
 
   // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
-  
+
   useDataRefresh(() => {
-      setNow(Math.floor(Date.now() / 1000));
+    setNow(Math.floor(Date.now() / 1000));
   }, 30000);
 
   const { duration, start } = useMemo(() => {
@@ -215,7 +215,10 @@ export function SystemAlerts({
           zIndex={1000}
           overlayProps={{ radius: "sm", blur: 2 }}
         />
-        <div className={chartClasses.alertHeader} style={{ height: headerHeight }}>
+        <div
+          className={chartClasses.alertHeader}
+          style={{ height: headerHeight }}
+        >
           <div
             style={{ flexGrow: 1, position: "relative", overflow: "hidden" }}
           >
