@@ -35,6 +35,7 @@ import {
 import { DatePickerInput } from "@mantine/dates";
 import { useEffect, useState } from "react";
 import { notifications } from "@mantine/notifications";
+import classes from "./Settings.module.scss";
 import "@mantine/dates/styles.css";
 
 interface ImportStatus {
@@ -527,7 +528,7 @@ export function Settings() {
                   radius="md"
                 >
                   <Center h="100%">
-                    <Stack align="center" gap="xs" style={{ width: "80%" }}>
+                    <Stack align="center" gap="xs" className={classes.importOverlayContent}>
                       <IconCloudDownload
                         size={40}
                         color="var(--mantine-color-orange-6)"

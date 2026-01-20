@@ -20,6 +20,7 @@ import {
   LoadingOverlay,
 } from "@mantine/core";
 import classes from "../ChartPanel.module.css";
+import chartClasses from "./Charts.module.scss";
 
 export const SystemAlertsDefaults = {
   title: "System Alerts",
@@ -208,37 +209,22 @@ export function SystemAlerts({
       onClick={() => onClick?.({ timeframe: localTf })}
       rightSection={controls}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          position: "relative",
-        }}
-      >
+      <div className={chartClasses.alertPanelContainer}>
         <LoadingOverlay
           visible={loading}
           zIndex={1000}
           overlayProps={{ radius: "sm", blur: 2 }}
         />
-        <div
-          style={{
-            display: "flex",
-            height: headerHeight,
-            borderBottom: "1px solid var(--mantine-color-gray-3)",
-          }}
-        >
+        <div className={chartClasses.alertHeader} style={{ height: headerHeight }}>
           <div
             style={{ flexGrow: 1, position: "relative", overflow: "hidden" }}
           >
             {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
               <div
                 key={pct}
+                className={chartClasses.timelineTick}
                 style={{
-                  position: "absolute",
                   left: `${pct * 100}%`,
-                  transform: "translateX(-50%)",
-                  top: 2,
                 }}
               >
                 <Text
@@ -258,22 +244,18 @@ export function SystemAlerts({
             {rows.map((row) => (
               <div
                 key={row.rawName}
+                className={chartClasses.alertRow}
                 style={{
-                  display: "flex",
                   height: rowHeight,
-                  borderBottom: "1px solid var(--mantine-color-gray-1)",
                 }}
               >
                 <div style={{ flexGrow: 1, position: "relative" }}>
                   {[0.25, 0.5, 0.75].map((pct) => (
                     <div
                       key={pct}
+                      className={chartClasses.timelineGridLine}
                       style={{
-                        position: "absolute",
                         left: `${pct * 100}%`,
-                        top: 0,
-                        bottom: 0,
-                        borderLeft: "1px dashed var(--mantine-color-gray-2)",
                       }}
                     />
                   ))}
@@ -301,20 +283,11 @@ export function SystemAlerts({
                         multiline
                       >
                         <Box
+                          className={chartClasses.alertBar}
                           style={{
-                            position: "absolute",
                             left: `${leftPct}%`,
                             width: `${visualWidth}%`,
-                            height: 16,
-                            top: 6,
                             backgroundColor: row.color,
-                            borderRadius: 4,
-                            opacity: 0.85,
-                            minWidth: 2,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            overflow: "hidden",
                           }}
                         >
                           {widthPct > 15 && (
@@ -322,7 +295,7 @@ export function SystemAlerts({
                               size="xs"
                               c={getContrastingTextColor(row.color)}
                               fw={600}
-                              style={{ whiteSpace: "nowrap", padding: "0 4px" }}
+                              className={chartClasses.alertBarLabel}
                             >
                               {row.name}
                             </Text>

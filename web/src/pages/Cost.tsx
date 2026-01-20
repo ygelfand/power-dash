@@ -15,6 +15,7 @@ import { IconCoin, IconCalendarTime } from "@tabler/icons-react";
 import { useConfig } from "../contexts/ConfigContext";
 import { useMemo, useState, useEffect } from "react";
 import { ResponsiveHeatMap } from "@nivo/heatmap";
+import classes from "./Cost.module.scss";
 
 export function Cost() {
   const { config, loading } = useConfig();
@@ -107,7 +108,7 @@ export function Cost() {
         <Paper p="md" withBorder>
           <Stack>
             <Group justify="space-between">
-              <Group gap="xs"><IconCalendarTime size={20} style={{ opacity: 0.7 }} /><Text fw={500}>Rate Schedule</Text></Group>
+              <Group gap="xs"><IconCalendarTime size={20} className={classes.iconFaded} /><Text fw={500}>Rate Schedule</Text></Group>
               <Select size="xs" data={seasons} value={selectedSeason} onChange={setSelectedSeason} allowDeselect={false} />
             </Group>
 

@@ -10,6 +10,7 @@ import { queryLatestMetrics } from "../../data";
 import type { ChartComponentProps, MetricQuery } from "../../data";
 import { Panel } from "../Panel";
 import classes from "../ChartPanel.module.css";
+import flowClasses from "./CurrentPowerFlow.module.scss";
 import { useDataRefresh } from "../../utils";
 
 export const CurrentPowerFlowDefaults = {
@@ -26,6 +27,7 @@ interface NodeProps {
   bgColor: string;
   subValue?: string;
   boxSize: number;
+  alert?: React.ReactNode;
 }
 
 function FlowNode({
@@ -36,39 +38,34 @@ function FlowNode({
   bgColor,
   subValue,
   boxSize,
+  alert,
 }: NodeProps) {
   const textOffset = boxSize / 2 + 4;
   return (
-    <Box style={{ position: "relative" }}>
+    <Box className={flowClasses.nodeBox}>
+      {alert && (
+        <Box className={flowClasses.alertIcon}>
+          {alert}
+        </Box>
+      )}
       <Paper
         shadow="xs"
         p={8}
         radius="sm"
         bg={bgColor}
+        className={flowClasses.nodePaper}
         style={{
           border: `2px solid var(--mantine-color-${color}-5)`,
-          position: "absolute",
-          transform: "translate(-50%, -50%)",
-          top: 0,
-          left: 0,
           width: boxSize,
           height: boxSize,
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 10,
         }}
       >
         {icon}
       </Paper>
       <Box
+        className={flowClasses.nodeLabelContainer}
         style={{
-          position: "absolute",
           bottom: textOffset,
-          textAlign: "center",
-          width: 160,
-          left: -80,
-          pointerEvents: "none",
         }}
       >
         <Text
@@ -203,15 +200,7 @@ export function CurrentPowerFlow({
         />
 
         {!isGridConnected && (
-          <Box
-            style={{
-              position: "absolute",
-              top: 10,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 50,
-            }}
-          >
+          <Box className={flowClasses.alertBadge}>
             <Badge
               color="red"
               size="lg"
@@ -224,17 +213,7 @@ export function CurrentPowerFlow({
         )}
 
         {/* SVG Background Layer for Paths */}
-        <Box
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            pointerEvents: "none",
-            zIndex: 1,
-          }}
-        >
+        <Box className={flowClasses.svgLayer}>
           <svg width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
             {/* Solar -> TrunkL */}
             {pSolar > minimumPower && (
@@ -312,11 +291,10 @@ export function CurrentPowerFlow({
 
         {/* Content Layer (Absolute Positioned Nodes aligned with SVG) */}
         <Box
+          className={flowClasses.nodePosition}
           style={{
-            position: "absolute",
             top: topPct,
             left: leftPct,
-            zIndex: 10,
           }}
         >
           <FlowNode
@@ -335,11 +313,10 @@ export function CurrentPowerFlow({
         </Box>
 
         <Box
+          className={flowClasses.nodePosition}
           style={{
-            position: "absolute",
             top: topPct,
             left: rightPct,
-            zIndex: 10,
           }}
         >
           <FlowNode
@@ -355,11 +332,10 @@ export function CurrentPowerFlow({
         </Box>
 
         <Box
+          className={flowClasses.nodePosition}
           style={{
-            position: "absolute",
             top: bottomPct,
             left: leftPct,
-            zIndex: 10,
           }}
         >
           <FlowNode
@@ -385,11 +361,10 @@ export function CurrentPowerFlow({
         </Box>
 
         <Box
+          className={flowClasses.nodePosition}
           style={{
-            position: "absolute",
             top: bottomPct,
             left: rightPct,
-            zIndex: 10,
           }}
         >
           <FlowNode

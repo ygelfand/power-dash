@@ -394,3 +394,14 @@
   color: var(--mantine-color-blue-6);
   font-size: 11px !important;
 }
+
+@media (max-width: 48em) {
+  .panel {
+    border-left: none;
+    border-right: none;
+    border-radius: 0;
+  }
+  .content {
+    padding: 0;
+  }
+}

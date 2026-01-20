@@ -1,5 +1,5 @@
 import { useMantineColorScheme, Text, Box, Center } from "@mantine/core";
-import { useElementSize, useDebouncedValue } from "@mantine/hooks";
+import { useElementSize, useDebouncedValue, useMediaQuery } from "@mantine/hooks";
 import UplotReact from "uplot-react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
@@ -101,6 +101,8 @@ export function BaseChart({
   const { ref, width: rawWidth } = useElementSize();
   const [width] = useDebouncedValue(rawWidth, 100);
   const isDark = colorScheme === "dark";
+  const isMobile = useMediaQuery("(max-width: 48em)");
+  const effectiveShowLegend = showLegend && !isMobile;
 
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));
   useEffect(() => {
@@ -188,31 +190,16 @@ export function BaseChart({
     }
   }, [uplot, hiddenSeries, series]);
 
-  // Data update effect
-  useEffect(() => {
-    if (uplot && externalData && externalData[0].length > 0) {
-      let newData = externalData;
-      if (convertFunc) {
-        newData = [
-          externalData[0],
-          ...externalData.slice(1).map((sd) => sd.map((v) => convertFunc(v))),
-        ] as [number[], ...number[][]];
-      }
-      uplot.setData(newData, false);
-      uplot.redraw();
-    }
-  }, [uplot, externalData, convertFunc]);
-
   useEffect(() => {
     if (uplot && width > 0) {
-      const legendWidth = showLegend ? 250 : 0;
+      const legendWidth = effectiveShowLegend ? 250 : 0;
       uplot.setSize({
         width: Math.max(100, width - legendWidth),
         height: fixedHeight,
       });
       uplot.redraw();
     }
-  }, [uplot, width, fixedHeight, showLegend]);
+  }, [uplot, width, fixedHeight, effectiveShowLegend]);
 
   const data = useMemo(() => {
     if (externalData) {
@@ -486,7 +473,7 @@ export function BaseChart({
           )}
         </div>
 
-        {showLegend && stats.length > 0 && (
+        {effectiveShowLegend && stats.length > 0 && (
           <div className={classes.sidebarLegend}>
             {stats.map((s) => {
               const isHidden = hiddenSeries.has(s.name);

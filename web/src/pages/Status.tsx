@@ -2,6 +2,7 @@ import { Container, Title, Grid, Card, Text, Badge, Group, Stack, Table, Loader,
 import { IconCpu, IconInfoCircle, IconActivity, IconBolt, IconSun, IconGauge, IconAlertTriangle, IconWorld, IconShieldCheck, IconCoin, IconTruck } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { useConfig } from "../contexts/ConfigContext";
+import classes from "./Status.module.scss";
 
 interface StatusData {
   system: {
@@ -262,10 +263,7 @@ export default function Status() {
             shadow="sm" 
             radius="md" 
             withBorder 
-            style={{ 
-                borderLeft: '4px solid var(--mantine-color-blue-6)',
-                backgroundColor: 'var(--mantine-color-blue-light)'
-            }}
+            className={classes.alertCard}
           >
             <Group mb="xs">
               <IconAlertTriangle size={20} color="var(--mantine-color-blue-6)" />

@@ -4,6 +4,7 @@ import '@mantine/code-highlight/styles.css';
 import { IconTool, IconPlayerPlay, IconBug, IconDownload, IconCheck, IconX, IconSearch, IconCopy, IconDeviceFloppy } from "@tabler/icons-react";
 import { useState } from "react";
 import { notifications } from "@mantine/notifications";
+import classes from "./Troubleshoot.module.scss";
 
 const KNOWN_QUERIES = [
   "SystemConfig",
@@ -247,7 +248,7 @@ export default function Troubleshoot() {
                         data={KNOWN_QUERIES}
                         value={selectedQuery}
                         onChange={setSelectedQuery}
-                        style={{ width: 200 }}
+                        className={classes.querySelect}
                     />
                     <Button 
                         size="xs" 
@@ -268,7 +269,7 @@ export default function Troubleshoot() {
                         code={JSON.stringify(queryResult, null, 2)} 
                         language="json"
                         withCopyButton={false}
-                        style={{ fontSize: '11px' }}
+                        className={classes.codeBlock}
                     />
                 ) : (
                     <Center h="100%">

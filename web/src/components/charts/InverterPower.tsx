@@ -42,7 +42,8 @@ export function InverterPower({
   const timestamps = new Set<number>();
 
   Object.keys(rawResults).forEach((key) => {
-    const match = key.match(/String (\d+)/);
+    // Match "index=0" or "String 0" patterns
+    const match = key.match(/index=(\d+)/) || key.match(/String (\d+)/);
     if (match) {
       const invIdx = `Inverter ${match[1]}`;
       if (!inverterPower[invIdx]) inverterPower[invIdx] = new Map();

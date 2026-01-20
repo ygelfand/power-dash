@@ -1,6 +1,6 @@
 import { Text } from "@mantine/core";
 import { useState, useEffect } from "react";
-import classes from "../App.module.css";
+import classes from "../App.module.scss";
 
 export function Tagline() {
   const lines = [
