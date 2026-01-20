@@ -1,7 +1,8 @@
-import { Text, Paper, Box, LoadingOverlay } from "@mantine/core";
+import { Text, Paper, Box, LoadingOverlay, Badge } from "@mantine/core";
 import { IconHome, IconBattery } from "@tabler/icons-react";
 import { PiSolarPanelFill } from "react-icons/pi";
 import { LuUtilityPole } from "react-icons/lu";
+import { VscDebugDisconnect } from "react-icons/vsc";
 
 import { useState } from "react";
 import { useResizeObserver } from "@mantine/hooks";
@@ -113,6 +114,7 @@ export function CurrentPowerFlow({
   const actualHeight = rect.height;
   const [values, setValues] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
+  const [isGridConnected, setIsGridConnected] = useState(true);
 
   const fetchData = async () => {
     const metrics: MetricQuery[] = [
@@ -130,6 +132,18 @@ export function CurrentPowerFlow({
         latest[key] = results[key].Value;
       });
       setValues(latest);
+
+      // Check Grid Status
+      try {
+        const gridRes = await fetch("/api/system_status/grid_status");
+        if (gridRes.ok) {
+          const gridData = await gridRes.json();
+          setIsGridConnected(gridData.grid_status === "SystemGridConnected");
+        }
+      } catch (e) {
+        // Silent fail on grid status check
+        console.warn("Failed to check grid status", e);
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -155,18 +169,18 @@ export function CurrentPowerFlow({
     if (abs < 10) return 0;
     return Math.max(0.5, 9 - Math.log(abs));
   };
+  const minimumPower = 3;
   const bridgePower = pSolar + pGrid;
   const bridgeColor =
-    pSolar > 0 && pGrid > 0
+    pSolar > minimumPower && pGrid > minimumPower
       ? "--mantine-color-orange-4"
-      : pSolar > 0
+      : pSolar > minimumPower
         ? "--mantine-color-yellow-4"
-        : pGrid > 0
+        : pGrid > minimumPower
           ? "--mantine-color-red-4"
-          : "--mantine-color-gray-4";
+          : "--mantine-color-green-4";
   // Responsive breakpoints based on pixel width
   const iconSize = Math.min(actualWidth / 12, 64);
-  const minimumPower = 3;
   const boxSize = iconSize + 2;
   const leftPct = "25%";
   const rightPct = "75%";
@@ -187,6 +201,28 @@ export function CurrentPowerFlow({
           zIndex={1000}
           overlayProps={{ radius: "sm", blur: 2 }}
         />
+
+        {!isGridConnected && (
+          <Box
+            style={{
+              position: "absolute",
+              top: 10,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 50,
+            }}
+          >
+            <Badge
+              color="red"
+              size="lg"
+              variant="filled"
+              leftSection={<VscDebugDisconnect size={16} />}
+            >
+              OFF GRID
+            </Badge>
+          </Box>
+        )}
+
         {/* SVG Background Layer for Paths */}
         <Box
           style={{
@@ -330,13 +366,20 @@ export function CurrentPowerFlow({
             title="Grid"
             value={formatW(pGrid, true)}
             icon={
-              <LuUtilityPole
-                size={iconSize}
-                color="var(--mantine-color-red-7)"
-              />
+              isGridConnected ? (
+                <LuUtilityPole
+                  size={iconSize}
+                  color="var(--mantine-color-red-7)"
+                />
+              ) : (
+                <VscDebugDisconnect
+                  size={iconSize}
+                  color="var(--mantine-color-red-9)"
+                />
+              )
             }
             color="red"
-            bgColor="red.1"
+            bgColor={isGridConnected ? "red.1" : "red.2"}
             boxSize={boxSize}
           />
         </Box>

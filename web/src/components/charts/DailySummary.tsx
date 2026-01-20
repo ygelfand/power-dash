@@ -199,6 +199,13 @@ export function DailySummary() {
         unit={getUnit(batteryNet)}
         icon={IconBattery}
         color="green"
+        iconRight={
+          batteryNet >= 0 ? (
+            <IconArrowDownLeft size={16} color="var(--mantine-color-green-7)" />
+          ) : (
+            <IconArrowUpRight size={16} color="var(--mantine-color-teal-7)" />
+          )
+        }
       />
     </SimpleGrid>
   );
