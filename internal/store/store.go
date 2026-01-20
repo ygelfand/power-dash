@@ -222,7 +222,7 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 			if step > 0 {
 				// Align buckets to local timezone offset
 				_, offset := time.Unix(tSec, 0).In(time.Local).Zone()
-				bucketTs := ((tSec + int64(offset)) / step) * step - int64(offset)
+				bucketTs := ((tSec+int64(offset))/step)*step - int64(offset)
 
 				b, ok := buckets[bucketTs]
 				if !ok {

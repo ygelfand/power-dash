@@ -27,6 +27,7 @@ type Api struct {
 	dashboards       []config.DashboardConfig
 	logger           *zap.Logger
 	importStatus     *ImportStatus
+	labelManager     *config.LabelManager
 }
 
 type ImportStatus struct {
@@ -38,7 +39,7 @@ type ImportStatus struct {
 	Percentage   float64 `json:"percentage"`
 }
 
-func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager, opts *config.ProxyOptions, z *zap.Logger) *Api {
+func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager, opts *config.ProxyOptions, z *zap.Logger, lm *config.LabelManager) *Api {
 	if z == nil {
 		z = zap.NewNop()
 	}
@@ -51,6 +52,7 @@ func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager
 		dashboards:       opts.Dashboards,
 		logger:           z,
 		importStatus:     &ImportStatus{},
+		labelManager:     lm,
 	}
 }
 
@@ -91,6 +93,8 @@ func (api *Api) Handler() http.Handler {
 			v1.GET("/status", api.getStatus)
 			v1.GET("/settings", api.getSettings)
 			v1.POST("/settings", api.saveSettings)
+			v1.GET("/labels", api.getLabels)
+			v1.POST("/labels", api.saveLabels)
 			v1.POST("/collectors/run", api.forceRunCollectors)
 			v1.POST("/debug/query", api.debugQuery)
 			v1.GET("/debug/bundle", api.downloadTechBundle)

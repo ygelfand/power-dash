@@ -42,9 +42,10 @@ type ProxyOptions struct {
 	LogLevel           string `mapstructure:"log-level" yaml:"log-level,omitempty" json:"log-level,omitempty"`
 	DisableCollector   bool   `mapstructure:"no-collector" yaml:"no-collector,omitempty" json:"no-collector,omitempty"`
 
-	ListenOn   string            `mapstructure:"listen" yaml:"listen,omitempty" json:"listen,omitempty"`
-	Storage    StorageOptions    `mapstructure:"storage" yaml:"storage,omitempty" json:"storage,omitempty"`
-	Dashboards []DashboardConfig `mapstructure:"dashboards" yaml:"dashboards,omitempty" json:"dashboards,omitempty"`
+	ListenOn        string            `mapstructure:"listen" yaml:"listen,omitempty" json:"listen,omitempty"`
+	Storage         StorageOptions    `mapstructure:"storage" yaml:"storage,omitempty" json:"storage,omitempty"`
+	Dashboards      []DashboardConfig `mapstructure:"dashboards" yaml:"dashboards,omitempty" json:"dashboards,omitempty"`
+	LabelConfigPath string            `mapstructure:"label-config" yaml:"label-config,omitempty" json:"label-config,omitempty"`
 }
 
 func NewDefaultProxyOptions() ProxyOptions {

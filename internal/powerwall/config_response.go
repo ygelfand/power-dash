@@ -12,10 +12,10 @@ type TouPeriod struct {
 }
 
 type SeasonConfig struct {
-	FromDay    int `json:"fromDay,omitempty"`
-	ToDay      int `json:"toDay,omitempty"`
-	FromMonth  int `json:"fromMonth,omitempty"`
-	ToMonth    int `json:"toMonth,omitempty"`
+	FromDay    int                    `json:"fromDay,omitempty"`
+	ToDay      int                    `json:"toDay,omitempty"`
+	FromMonth  int                    `json:"fromMonth,omitempty"`
+	ToMonth    int                    `json:"toMonth,omitempty"`
 	TouPeriods map[string][]TouPeriod `json:"tou_periods,omitempty"`
 }
 
@@ -83,8 +83,8 @@ type ConfigResponse struct {
 		NominalSystemEnergyAc       int           `json:"nominal_system_energy_ac,omitempty"`
 		NominalSystemPowerAc        float64       `json:"nominal_system_power_ac,omitempty"`
 		TariffContent               TariffDetails `json:"tariff_content,omitempty"`
-		GridCode          string `json:"grid_code,omitempty"`
-		GridCodeOverrides []struct {
+		GridCode                    string        `json:"grid_code,omitempty"`
+		GridCodeOverrides           []struct {
 			Name  string  `json:"name,omitempty"`
 			Value float64 `json:"value,omitempty"`
 		} `json:"grid_code_overrides,omitempty"`

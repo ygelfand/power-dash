@@ -6,6 +6,7 @@ import "uplot/dist/uPlot.min.css";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { parseTimeframe } from "../utils";
 import classes from "./ChartPanel.module.css";
+import { useLabels } from "../contexts/LabelContext";
 
 interface BaseSeriesConfig {
   name: string;
@@ -98,6 +99,7 @@ export function BaseChart({
   spanGaps = false,
 }: BaseChartProps) {
   const { colorScheme } = useMantineColorScheme();
+  const { getLabel } = useLabels();
   const { ref, width: rawWidth } = useElementSize();
   const [width] = useDebouncedValue(rawWidth, 100);
   const isDark = colorScheme === "dark";
@@ -350,7 +352,7 @@ export function BaseChart({
                 lastIdx.current = idx;
                 const currentLegendData = series
                   .map((s, i) => ({
-                    label: s.name,
+                    label: getLabel(s.name),
                     value: u.data[i + 1][idx] as number,
                     color: s.color,
                     unit: s.unit,
@@ -406,7 +408,7 @@ export function BaseChart({
       series: [
         {},
         ...series.map((s) => ({
-          label: s.name,
+          label: getLabel(s.name),
           scale: s.unit === "%" ? "percent" : s.unit || "y",
           stroke: s.color,
           width: 2,
@@ -491,7 +493,7 @@ export function BaseChart({
                       }}
                     />
                     <Text size="xs" fw={700} truncate>
-                      {s.name}
+                      {getLabel(s.name)}
                     </Text>
                   </div>
                   <div className={classes.legendStats}>

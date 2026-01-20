@@ -93,7 +93,8 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 			gin.ForceConsoleColor()
 
 			o.ConfigPath = viper.ConfigFileUsed()
-			app := api.NewApi(pwr, st, cm, o, logger)
+			lm := config.NewLabelManager(o.ConfigPath, o.LabelConfigPath, logger)
+			app := api.NewApi(pwr, st, cm, o, logger, lm)
 
 			srv := &http.Server{
 				Addr:    o.ListenOn,
@@ -130,10 +131,12 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 	runCmd.Flags().StringVar(&o.Storage.DataPath, "storage-path", defaults.Storage.DataPath, "path to storage directory")
 	runCmd.Flags().StringVar(&o.Storage.Retention, "storage-retention", defaults.Storage.Retention, "data retention period (e.g. 7d, 168h, 0s for infinity)")
 	runCmd.Flags().StringVar(&o.Storage.PartitionDuration, "storage-partition", defaults.Storage.PartitionDuration, "partition duration (e.g. 2h)")
+	runCmd.Flags().StringVar(&o.LabelConfigPath, "label-config", "", "path to label configuration file")
 
 	viper.BindPFlag("storage.path", runCmd.Flags().Lookup("storage-path"))
 	viper.BindPFlag("storage.retention", runCmd.Flags().Lookup("storage-retention"))
 	viper.BindPFlag("storage.partition", runCmd.Flags().Lookup("storage-partition"))
+	viper.BindPFlag("label-config", runCmd.Flags().Lookup("label-config"))
 
 	return runCmd
 }

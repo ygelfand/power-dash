@@ -26,12 +26,16 @@ import {
 } from "./contexts/TimeframeContext";
 import { RefreshProvider, useRefresh } from "./contexts/RefreshContext";
 import { ConfigProvider } from "./contexts/ConfigContext";
+import { LabelProvider } from "./contexts/LabelContext";
 
 const Dashboard = lazy(() =>
   import("./pages/Dashboard").then((module) => ({ default: module.Dashboard })),
 );
 const Settings = lazy(() =>
   import("./pages/Settings").then((module) => ({ default: module.Settings })),
+);
+const Labels = lazy(() =>
+  import("./pages/Labels").then((module) => ({ default: module.Labels })),
 );
 const Cost = lazy(() =>
   import("./pages/Cost").then((module) => ({ default: module.Cost })),
@@ -120,6 +124,7 @@ function AppContent() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/labels" element={<Labels />} />
             <Route path="/cost" element={<Cost />} />
             <Route path="/status" element={<Status />} />
             <Route path="/troubleshoot" element={<Troubleshoot />} />
@@ -140,7 +145,9 @@ export default function App() {
       <RefreshProvider>
         <TimeframeProvider>
           <ConfigProvider>
-            <AppContent />
+            <LabelProvider>
+              <AppContent />
+            </LabelProvider>
           </ConfigProvider>
         </TimeframeProvider>
       </RefreshProvider>

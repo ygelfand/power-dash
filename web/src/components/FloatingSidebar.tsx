@@ -17,6 +17,7 @@ import {
   IconTool,
   IconHelp,
   IconCoin,
+  IconTags,
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router-dom";
 import classes from "../App.module.scss";
@@ -51,6 +52,19 @@ function MenuItems({ close }: { close: () => void }) {
         onClick={close}
       >
         <IconCoin size={24} />
+      </ActionIcon>
+
+      <ActionIcon
+        component={Link}
+        to="/labels"
+        radius="xl"
+        size="xl"
+        variant="default"
+        aria-label="Labels"
+        title="Label Mappings"
+        onClick={close}
+      >
+        <IconTags size={24} />
       </ActionIcon>
 
       <ActionIcon
