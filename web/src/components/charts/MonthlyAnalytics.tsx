@@ -56,8 +56,9 @@ export function MonthlyAnalytics({
       }
     } else {
       const now = new Date();
-      now.setHours(0, 0, 0, 0);
-      end = Math.floor(now.getTime() / 1000) + 86400; // Midnight tonight
+      now.setUTCHours(0, 0, 0, 0);
+      // Request up to "tomorrow" UTC to ensure we get the full current UTC day bucket
+      end = Math.floor(now.getTime() / 1000) + 86400; 
       start = end - 86400 * 30; // 30 days ago
     }
 

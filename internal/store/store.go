@@ -220,7 +220,10 @@ func (s *Store) Select(metric string, tags map[string]string, start, end, step i
 			tSec := t / 1000
 
 			if step > 0 {
-				bucketTs := (tSec / step) * step
+				// Align buckets to local timezone offset
+				_, offset := time.Unix(tSec, 0).In(time.Local).Zone()
+				bucketTs := ((tSec + int64(offset)) / step) * step - int64(offset)
+
 				b, ok := buckets[bucketTs]
 				if !ok {
 					b = &bucketData{min: v, max: v, set: true}

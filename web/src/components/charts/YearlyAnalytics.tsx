@@ -3,7 +3,7 @@ import { ChartPanel } from "../ChartPanel";
 import { batchQueryMetrics } from "../../data";
 import type { ChartComponentProps } from "../../data";
 import { Center, Loader } from "@mantine/core";
-import { useDataRefresh } from "../../utils";
+import { useDataRefresh, alignTimestamps } from "../../utils";
 
 export const YearlyAnalyticsDefaults = {
   title: "Yearly Solar Production",
@@ -31,11 +31,10 @@ export function YearlyAnalytics({
 
     if (zoomRange) {
       [start, end] = zoomRange;
-      start = Math.floor(start / 86400) * 86400;
-      end = Math.ceil(end / 86400) * 86400;
     } else {
-      // Align to UTC midnight to match backend's floor(ts/86400)*86400 logic
-      end = Math.floor(Date.now() / 1000 / 86400) * 86400 + 86400;
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      end = Math.floor(now.getTime() / 1000) + 86400;
       start = end - 86400 * 365;
     }
 
@@ -70,10 +69,7 @@ export function YearlyAnalytics({
         }));
       });
 
-      const finalTs = [];
-      for (let t = Math.floor(start); t < end; t += 86400) {
-        finalTs.push(t);
-      }
+      const finalTs = alignTimestamps(results);
 
       const solarMap = new Map(
         (results["Solar"] || []).map((p) => [p.Timestamp, p.Value]),
