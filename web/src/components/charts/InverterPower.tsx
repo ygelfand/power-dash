@@ -33,14 +33,20 @@ export function InverterPower({
 
   const getDynamicColor = useDynamicColor();
   // Fetch solar string power instead of inverter power
-    const metrics = [{ name: 'solar_power_watts', label: 'String', all: true }];
-    const { rawResults, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
+  const metrics = [{ name: "solar_power_watts", label: "String", all: true }];
+  const { rawResults, loading } = useChartData(
+    metrics,
+    localTf,
+    undefined,
+    undefined,
+    undefined,
+    zoomRange,
+  );
 
   // Aggregate string power by inverter index
   // Keys in rawResults are like "String index=0 string=A"
   const inverterPower: Record<string, Map<number, number>> = {};
   const timestamps = new Set<number>();
-
   Object.keys(rawResults).forEach((key) => {
     // Match "index=0" or "String 0" patterns
     const match = key.match(/index=(\d+)/) || key.match(/String (\d+)/);

@@ -211,16 +211,16 @@ export function ChartPanel({
                 <IconChevronLeft size={14} />
               </ActionIcon>
 
-                              <div className={classes.navPageIndicator}>
-                                <Text
-                                  className={`${classes.navPageText} ${
-                                    pageOffset > 0 ? classes.navPageActive : classes.navPageLive
-                                  }`}
-                                >
-                                  {pageOffset > 0 ? `-${pageOffset}` : "LIVE"}
-                                </Text>
-                              </div>
-                            <ActionIcon
+              <div className={classes.navPageIndicator}>
+                <Text
+                  className={`${classes.navPageText} ${
+                    pageOffset > 0 ? classes.navPageActive : classes.navPageLive
+                  }`}
+                >
+                  {pageOffset > 0 ? `-${pageOffset}` : "LIVE"}
+                </Text>
+              </div>
+              <ActionIcon
                 variant="default"
                 size="sm"
                 onClick={handleNext}
@@ -258,29 +258,32 @@ export function ChartPanel({
       }
     >
       <div style={{ position: "relative", height: "100%" }}>
-        <LoadingOverlay
-          visible={loading}
-          zIndex={1000}
-          overlayProps={{ radius: "sm", blur: 2 }}
-        />
-        <BaseChart
-          data={data}
-          series={series}
-          timeframe={currentTimeframe}
-          height={height}
-          tooltipFormat={tooltipFormat}
-          convertFunc={convertFunc}
-          onCreate={(u) => (uplotRef.current = u)}
-          onZoom={(z, range) => {
-            setIsZoomed(z);
-            onZoom?.(z, range);
-          }}
-          isZoomed={isZoomed}
-          showLegend={showLegend}
-          zoomRange={zoomRange}
-          autoScale={autoScale}
-          spanGaps={spanGaps}
-        />
+        {loading ? (
+          <LoadingOverlay
+            visible={loading}
+            zIndex={1000}
+            overlayProps={{ radius: "sm", blur: 2 }}
+          />
+        ) : (
+          <BaseChart
+            data={data}
+            series={series}
+            timeframe={currentTimeframe}
+            height={height}
+            tooltipFormat={tooltipFormat}
+            convertFunc={convertFunc}
+            onCreate={(u) => (uplotRef.current = u)}
+            onZoom={(z, range) => {
+              setIsZoomed(z);
+              onZoom?.(z, range);
+            }}
+            isZoomed={isZoomed}
+            showLegend={showLegend}
+            zoomRange={zoomRange}
+            autoScale={autoScale}
+            spanGaps={spanGaps}
+          />
+        )}
       </div>
     </Panel>
   );
