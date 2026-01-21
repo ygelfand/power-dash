@@ -31,7 +31,7 @@ func NewDebugQueryCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra.
 			var prettyJSON bytes.Buffer
 			err := json.Indent(&prettyJSON, []byte(*debug), "", "\t")
 			if err != nil {
-				logger.Error("JSON parse error", zap.Error(err))
+				logger.Error("JSON parse error", zap.Error(err), zap.String("response", *debug))
 			}
 
 			cmd.Println(string(prettyJSON.Bytes()))
