@@ -81,9 +81,25 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 
 	// Fans and Temps
 	var env []store.EnvironmentalReading
-	msaIdx := 0
+	validTempIdx := 0
 	for _, msa := range ctrl.Components.Msa {
-		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: msaIdx}
+		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: validTempIdx}
+		found := false
+		for _, signal := range msa.Signals {
+			if signal.Value != nil && signal.Name == "THC_AmbientTemp" {
+				r.AmbientTemp = utils.ToPtr(float64(*signal.Value))
+				found = true
+			}
+		}
+		if found {
+			env = append(env, r)
+			validTempIdx++
+		}
+	}
+
+	validFanIdx := 0
+	for _, msa := range ctrl.Components.Msa {
+		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: validFanIdx}
 		found := false
 		for _, signal := range msa.Signals {
 			if signal.Value == nil {
@@ -96,16 +112,14 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 			case "PVAC_Fan_Speed_Target_RPM":
 				r.FanSpeedTarget = utils.ToPtr(float64(*signal.Value))
 				found = true
-			case "THC_AmbientTemp":
-				r.AmbientTemp = utils.ToPtr(float64(*signal.Value))
-				found = true
 			}
 		}
 		if found {
 			env = append(env, r)
-			msaIdx++
+			validFanIdx++
 		}
 	}
+
 	_ = s.InsertEnvironmentalReadings(env)
 
 	// Inverters
@@ -178,6 +192,16 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 	}
 	for i, pvac := range ctrl.EsCan.Bus.Pvac {
 		addAlerts(fmt.Sprintf("pvac_%d", i), pvac.Alerts.Active)
+	}
+	for i, pvs := range ctrl.EsCan.Bus.Pvs {
+		addAlerts(fmt.Sprintf("pvs_%d", i), pvs.Alerts.Active)
+	}
+	for i, msa := range ctrl.Components.Msa {
+		var names []string
+		for _, a := range msa.ActiveAlerts {
+			names = append(names, a.Name)
+		}
+		addAlerts(fmt.Sprintf("msa_%d", i), names)
 	}
 	_ = s.InsertAlerts(alerts)
 

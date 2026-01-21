@@ -116,7 +116,15 @@ interface Particle {
   speed: number;
   path: Point[]; // Remaining waypoints
   id: number;
-  source: "Solar" | "Grid" | "Battery" | "Home" | "Bridge";
+  source:
+    | "Solar"
+    | "GridImport"
+    | "GridExport"
+    | "BatteryDischarge"
+    | "BatteryCharge"
+    | "Home"
+    | "BridgeLR"
+    | "BridgeRL";
 }
 
 export function CurrentPowerFlow({
@@ -261,22 +269,29 @@ export function CurrentPowerFlow({
     let lastTime = performance.now();
     const spawnAccumulator: Record<string, number> = {
       Solar: 0,
-      Grid: 0,
-      Battery: 0,
-      BridgeBack: 0,
+      GridImport: 0,
+      GridExport: 0,
+      BatteryDischarge: 0,
+      BatteryCharge: 0,
+      Home: 0,
+      BridgeLR: 0,
+      BridgeRL: 0,
     };
 
     const animate = (time: number) => {
       const dt = (time - lastTime) / 1000;
       lastTime = time;
 
-      // Remove particles on paths where power is now 0
+      // Remove particles on paths where power is now 0 or direction flipped
       particlesRef.current = particlesRef.current.filter((p) => {
         if (p.source === "Solar") return pSolar > MIN_POWER;
-        if (p.source === "Grid") return Math.abs(pGrid) > MIN_POWER;
-        if (p.source === "Battery") return Math.abs(pBattery) > MIN_POWER;
+        if (p.source === "GridImport") return pGrid > MIN_POWER;
+        if (p.source === "GridExport") return pGrid < -MIN_POWER;
+        if (p.source === "BatteryDischarge") return pBattery > MIN_POWER;
+        if (p.source === "BatteryCharge") return pBattery < -MIN_POWER;
         if (p.source === "Home") return pHome > MIN_POWER;
-        if (p.source === "Bridge") return Math.abs(bridgeFlow) > MIN_POWER;
+        if (p.source === "BridgeLR") return bridgeFlow > MIN_POWER;
+        if (p.source === "BridgeRL") return bridgeFlow < -MIN_POWER;
         return true;
       });
 
@@ -325,7 +340,7 @@ export function CurrentPowerFlow({
       };
 
       const trySpawn = (
-        source: "Solar" | "Grid" | "Battery",
+        source: Particle["source"],
         watts: number,
         startPath: Point[],
         color: string,
@@ -358,14 +373,14 @@ export function CurrentPowerFlow({
         );
       if (pGrid > MIN_POWER)
         trySpawn(
-          "Grid",
+          "GridImport",
           pGrid,
           [points.Grid, points.TrunkL_Bot, points.TrunkL_Mid],
           cGrid,
         ); // Import
       if (pBattery > MIN_POWER)
         trySpawn(
-          "Battery",
+          "BatteryDischarge",
           pBattery,
           [points.Battery, points.TrunkR_Bot, points.TrunkR_Mid],
           cBatt,
@@ -398,7 +413,7 @@ export function CurrentPowerFlow({
                 path: [points.Grid],
                 c: cGrid,
                 s: calculateSpeed(flowExport),
-                src: "Grid",
+                src: "GridExport",
               });
             if (flowBridge > MIN_POWER)
               targets.push({
@@ -406,7 +421,7 @@ export function CurrentPowerFlow({
                 path: [],
                 c: cBridge,
                 s: calculateSpeed(Math.abs(bridgeFlow)),
-                src: "Bridge",
+                src: "BridgeLR",
               });
 
             if (targets.length > 0) {
@@ -449,7 +464,7 @@ export function CurrentPowerFlow({
                 path: [points.Battery],
                 c: cBatt,
                 s: calculateSpeed(flowToBatt),
-                src: "Battery",
+                src: "BatteryCharge",
               });
             if (flowToHome > MIN_POWER)
               targets.push({
@@ -465,7 +480,7 @@ export function CurrentPowerFlow({
                 path: [],
                 c: cBridge,
                 s: calculateSpeed(flowToBridge),
-                src: "Bridge",
+                src: "BridgeRL",
               });
 
             if (targets.length > 0) {

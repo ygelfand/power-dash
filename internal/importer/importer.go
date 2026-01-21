@@ -32,7 +32,7 @@ type Importer struct {
 
 func NewImporter(cfg Config, s *store.Store, l *zap.Logger) *Importer {
 	if len(cfg.Measurements) == 0 {
-		cfg.Measurements = []string{"http", "alerts", "soe", "vitals"}
+		cfg.Measurements = []string{"http", "alerts", "soe", "vitals", "pwfans", "pwtemps"}
 	}
 	if len(cfg.RetentionPolicies) == 0 {
 		cfg.RetentionPolicies = []string{"autogen", "strings", "pwtemps", "vitals", "pod", "pwfans", "alerts"}
@@ -155,6 +155,7 @@ func (imp *Importer) RunImport(ctx context.Context, start, end time.Time, progre
 var (
 	solarStringRegex = regexp.MustCompile(`^([A-Z])(\d*)_(Voltage|Current|Power)$`)
 	pwIndexRegex     = regexp.MustCompile(`^PW(\d+)_`)
+	fanFieldRegex    = regexp.MustCompile(`(?i)^([A-Z])(\d*)_(actual|target)_rpm$`)
 )
 
 type seriesInfo struct {
@@ -271,6 +272,41 @@ func processSeries(st *store.Store, allSeries []seriesInfo, logger *zap.Logger) 
 					meters = append(meters, store.MeterReading{Timestamp: ts, Site: "site", Frequency: utils.ToPtr(floatVal)})
 				case strings.Contains(colName, "ISLAND_Freq_Load") || colName == "load_frequency":
 					meters = append(meters, store.MeterReading{Timestamp: ts, Site: "load", Frequency: utils.ToPtr(floatVal)})
+				case colName == "PVAC_Fan_Speed_Actual_RPM" || colName == "pvac_fan_speed_actual_rpm" || colName == "fan_speed":
+					idx := 0
+					if v, ok := info.tags["index"]; ok {
+						idx, _ = strconv.Atoi(v)
+					} else if v, ok := info.tags["pvac"]; ok {
+						idx, _ = strconv.Atoi(v)
+					}
+					env = append(env, store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx, FanSpeedActual: utils.ToPtr(floatVal)})
+				case colName == "PVAC_Fan_Speed_Target_RPM" || colName == "pvac_fan_speed_target_rpm" || colName == "fan_target":
+					idx := 0
+					if v, ok := info.tags["index"]; ok {
+						idx, _ = strconv.Atoi(v)
+					} else if v, ok := info.tags["pvac"]; ok {
+						idx, _ = strconv.Atoi(v)
+					}
+					env = append(env, store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx, FanSpeedTarget: utils.ToPtr(floatVal)})
+				case fanFieldRegex.MatchString(colName):
+					m := fanFieldRegex.FindStringSubmatch(colName)
+					letter := strings.ToUpper(m[1])
+					numStr := m[2]
+					isTarget := strings.ToLower(m[3]) == "target"
+
+					idx := int(letter[0] - 'A')
+					if numStr != "" {
+						n, _ := strconv.Atoi(numStr)
+						idx += n
+					}
+
+					r := store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx}
+					if isTarget {
+						r.FanSpeedTarget = utils.ToPtr(floatVal)
+					} else {
+						r.FanSpeedActual = utils.ToPtr(floatVal)
+					}
+					env = append(env, r)
 				case solarStringRegex.MatchString(colName):
 					m := solarStringRegex.FindStringSubmatch(colName)
 					idx := 0
@@ -299,6 +335,10 @@ func processSeries(st *store.Store, allSeries []seriesInfo, logger *zap.Logger) 
 					switch suffix {
 					case "temp":
 						env = append(env, store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx, AmbientTemp: utils.ToPtr(floatVal)})
+					case "PVAC_Fan_Speed_Actual_RPM":
+						env = append(env, store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx, FanSpeedActual: utils.ToPtr(floatVal)})
+					case "PVAC_Fan_Speed_Target_RPM":
+						env = append(env, store.EnvironmentalReading{Timestamp: ts, MsaIndex: idx, FanSpeedTarget: utils.ToPtr(floatVal)})
 					case "PINV_Fout":
 						inverters = append(inverters, store.InverterReading{Timestamp: ts, InverterIndex: idx, Type: "battery", Frequency: utils.ToPtr(floatVal)})
 					case "p_out":

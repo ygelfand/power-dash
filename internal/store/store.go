@@ -113,10 +113,24 @@ func NewStore(cfg Config, logger *zap.Logger) (*Store, error) {
 	// Enable OOO support for historical imports (10 years window)
 	opts.OutOfOrderTimeWindow = 10 * 365 * 24 * 60 * 60 * 1000
 
-	if cfg.PartitionDuration > 0 {
-		opts.MinBlockDuration = int64(cfg.PartitionDuration / time.Millisecond)
-		opts.MaxBlockDuration = int64(cfg.PartitionDuration / time.Millisecond)
+	if cfg.PartitionDuration > 0 { // MinBlockDuration controls when Head is flushed to disk. Keep it small (30m) for safety.
+		// MaxBlockDuration controls how large blocks can grow via compaction (reducing directory count).
+		defaultMin := int64(30 * time.Minute / time.Millisecond)
+		targetMax := int64(cfg.PartitionDuration / time.Millisecond)
+
+		if targetMax < defaultMin {
+			opts.MinBlockDuration = targetMax
+		} else {
+			opts.MinBlockDuration = defaultMin
+		}
+		opts.MaxBlockDuration = targetMax
 	}
+
+	logger.Info("Initializing TSDB",
+		zap.String("path", cfg.DataPath),
+		zap.Duration("retention", cfg.Retention),
+		zap.Duration("partition", cfg.PartitionDuration),
+	)
 
 	db, err := tsdb.Open(cfg.DataPath, slogger, prometheus.NewRegistry(), opts, nil)
 	if err != nil {
