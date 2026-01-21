@@ -237,7 +237,7 @@ export function CurrentPowerFlow({
       TrunkR_Bot: { x: trunkR_X - boxSize / 2, y: bottomY - boxSize / 2 },
       TrunkR_Mid: { x: trunkR_X - boxSize / 2, y: vcenter - boxSize / 2 },
     }),
-    [leftX, rightX, topY, bottomY, trunkL_X, trunkR_X, vcenter],
+    [boxSize, leftX, rightX, topY, bottomY, trunkL_X, trunkR_X, vcenter],
   );
 
   // Particle Logic
@@ -453,9 +453,14 @@ export function CurrentPowerFlow({
         }
 
         // Draw Particle
+        const gradient = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, 4);
+        gradient.addColorStop(0, "white");
+        gradient.addColorStop(0.4, p.color);
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = p.color;
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
         ctx.fill();
       }
 
@@ -465,6 +470,7 @@ export function CurrentPowerFlow({
     requestRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(requestRef.current);
   }, [
+    cBatt,
     actualWidth,
     actualHeight,
     points,
@@ -473,6 +479,10 @@ export function CurrentPowerFlow({
     pBattery,
     pHome,
     bridgeFlow,
+    cBridge,
+    cGrid,
+    cHome,
+    cSolar,
   ]); // Re-bind on metric change
 
   return (
