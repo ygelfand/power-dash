@@ -114,7 +114,7 @@ func (p *PowerwallGateway) RunQuery(query string, params *string) *string {
 	pr := &ParentMessage{}
 	err = proto.Unmarshal(resp, pr)
 	if err != nil {
-		p.logger.Error("Failed to unmarshal query response", zap.Error(err))
+		p.logger.Error("Failed to unmarshal query response", zap.Error(err), zap.String("response", string(resp)))
 		return nil
 	}
 	if pr.Message.Payload == nil {
