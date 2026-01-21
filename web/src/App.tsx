@@ -37,6 +37,9 @@ const Settings = lazy(() =>
 const Labels = lazy(() =>
   import("./pages/Labels").then((module) => ({ default: module.Labels })),
 );
+const Explorer = lazy(() =>
+  import("./pages/Explorer").then((module) => ({ default: module.Explorer })),
+);
 const Cost = lazy(() =>
   import("./pages/Cost").then((module) => ({ default: module.Cost })),
 );
@@ -125,6 +128,7 @@ function AppContent() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/labels" element={<Labels />} />
+            <Route path="/explorer" element={<Explorer />} />
             <Route path="/cost" element={<Cost />} />
             <Route path="/status" element={<Status />} />
             <Route path="/troubleshoot" element={<Troubleshoot />} />

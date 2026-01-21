@@ -15,10 +15,10 @@ import {
   IconSettings,
   IconInfoCircle,
   IconTool,
-  IconHelp,
   IconCoin,
   IconTags,
 } from "@tabler/icons-react";
+import { FaWpexplorer } from "react-icons/fa6";
 import { Link, useLocation } from "react-router-dom";
 import classes from "../App.module.scss";
 import { Tagline } from "./Tagline";
@@ -107,14 +107,16 @@ function MenuItems({ close }: { close: () => void }) {
       </ActionIcon>
 
       <ActionIcon
+        component={Link}
+        to="/explorer"
         radius="xl"
         size="xl"
         variant="default"
-        aria-label="Help"
-        title="Help"
+        aria-label="Explorer"
+        title="Data Explorer"
         onClick={close}
       >
-        <IconHelp size={24} />
+        <FaWpexplorer size={24} />
       </ActionIcon>
     </>
   );
@@ -211,3 +213,4 @@ export function FloatingSidebar() {
     </Affix>
   );
 }
+

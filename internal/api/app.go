@@ -1,8 +1,10 @@
 package api
 
 import (
+	"log/slog"
 	"net/http"
 	"net/http/httputil"
+	"os"
 	"strings"
 	"time"
 
@@ -10,6 +12,7 @@ import (
 	"github.com/gin-contrib/timeout"
 	ginzap "github.com/gin-contrib/zap"
 	"github.com/gin-gonic/gin"
+	"github.com/prometheus/prometheus/promql"
 	"github.com/ygelfand/power-dash/internal/collector"
 	"github.com/ygelfand/power-dash/internal/config"
 	"github.com/ygelfand/power-dash/internal/powerwall"
@@ -28,6 +31,7 @@ type Api struct {
 	logger           *zap.Logger
 	importStatus     *ImportStatus
 	labelManager     *config.LabelManager
+	promqlEngine     *promql.Engine
 }
 
 type ImportStatus struct {
@@ -43,6 +47,13 @@ func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager
 	if z == nil {
 		z = zap.NewNop()
 	}
+
+	engine := promql.NewEngine(promql.EngineOpts{
+		Logger:     slog.New(slog.NewJSONHandler(os.Stderr, nil)),
+		MaxSamples: 50000000,
+		Timeout:    2 * time.Minute,
+	})
+
 	return &Api{
 		powerwall:        p,
 		proxy:            newProxy(p),
@@ -53,6 +64,7 @@ func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager
 		logger:           z,
 		importStatus:     &ImportStatus{},
 		labelManager:     lm,
+		promqlEngine:     engine,
 	}
 }
 
@@ -102,6 +114,15 @@ func (api *Api) Handler() http.Handler {
 			v1.POST("/import/run", api.runImport)
 			v1.GET("/import/status", api.getImportStatus)
 			v1.GET("/config", api.getConfig)
+
+			// Prometheus API
+			prom := v1.Group("/prom/api/v1")
+			{
+				prom.GET("/query", api.promQuery)
+				prom.POST("/query", api.promQuery)
+				prom.GET("/query_range", api.promQueryRange)
+				prom.POST("/query_range", api.promQueryRange)
+			}
 		}
 	}
 

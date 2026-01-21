@@ -130,6 +130,10 @@ func (s *Store) Close() error {
 	return s.db.Close()
 }
 
+func (s *Store) Queryable() storage.Queryable {
+	return s.db
+}
+
 func (s *Store) GetLastTimestamp(metric string) (int64, error) {
 	q, err := s.db.Querier(time.Now().Add(-30*24*time.Hour).UnixMilli(), time.Now().UnixMilli())
 	if err != nil {
