@@ -205,7 +205,8 @@
   stroke-width: 4;
   stroke-linecap: round;
   stroke-dasharray: 10, 15;
-  animation: flow 2s linear infinite;
+  animation: flow 2s steps(20) infinite;
+  will-change: stroke-dashoffset;
 }
 
 @keyframes flow {
@@ -405,3 +406,4 @@
     padding: 0;
   }
 }
+

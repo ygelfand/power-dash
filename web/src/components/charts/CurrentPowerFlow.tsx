@@ -1,15 +1,21 @@
-import { Text, Paper, Box, LoadingOverlay, Badge } from "@mantine/core";
+import {
+  Text,
+  Paper,
+  Box,
+  LoadingOverlay,
+  Badge,
+  useMantineTheme,
+} from "@mantine/core";
 import { IconHome, IconBattery } from "@tabler/icons-react";
 import { PiSolarPanelFill } from "react-icons/pi";
 import { LuUtilityPole } from "react-icons/lu";
 import { VscDebugDisconnect } from "react-icons/vsc";
 
-import { useState } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useResizeObserver } from "@mantine/hooks";
 import { queryLatestMetrics } from "../../data";
 import type { ChartComponentProps, MetricQuery } from "../../data";
 import { Panel } from "../Panel";
-import classes from "../ChartPanel.module.css";
 import flowClasses from "./CurrentPowerFlow.module.scss";
 import { useDataRefresh } from "../../utils";
 
@@ -43,11 +49,7 @@ function FlowNode({
   const textOffset = boxSize / 2 + 4;
   return (
     <Box className={flowClasses.nodeBox}>
-      {alert && (
-        <Box className={flowClasses.alertIcon}>
-          {alert}
-        </Box>
-      )}
+      {alert && <Box className={flowClasses.alertIcon}>{alert}</Box>}
       <Paper
         shadow="xs"
         p={8}
@@ -100,13 +102,36 @@ function FlowNode({
   );
 }
 
+// Particle System Types
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface Particle {
+  x: number;
+  y: number;
+  target: Point;
+  color: string;
+  speed: number;
+  path: Point[]; // Remaining waypoints
+  id: number;
+  source: "Solar" | "Grid" | "Battery" | "Home" | "Bridge";
+}
+
 export function CurrentPowerFlow({
   height = 250,
   panel,
   timeframe,
   onClick,
 }: ChartComponentProps) {
+  const theme = useMantineTheme();
   const [ref, rect] = useResizeObserver();
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const requestRef = useRef<number>(0);
+  const particlesRef = useRef<Particle[]>([]);
+  const particleIdCounter = useRef(0);
+
   const actualWidth = rect.width;
   const actualHeight = rect.height;
   const [values, setValues] = useState<Record<string, number>>({});
@@ -130,7 +155,6 @@ export function CurrentPowerFlow({
       });
       setValues(latest);
 
-      // Check Grid Status
       try {
         const gridRes = await fetch("/api/system_status/grid_status");
         if (gridRes.ok) {
@@ -138,7 +162,6 @@ export function CurrentPowerFlow({
           setIsGridConnected(gridData.grid_status === "SystemGridConnected");
         }
       } catch (e) {
-        // Silent fail on grid status check
         console.warn("Failed to check grid status", e);
       }
     } catch (e) {
@@ -148,7 +171,7 @@ export function CurrentPowerFlow({
     }
   };
 
-  useDataRefresh(fetchData, 30000);
+  useDataRefresh(fetchData, 5000); // Faster refresh for live feel? Keep 30s for now or 5s
 
   const formatW = (val: number, signed = false) => {
     const abs = Math.abs(val);
@@ -157,39 +180,301 @@ export function CurrentPowerFlow({
     return `${prefix}${abs.toFixed(0)} W`;
   };
 
-  const pSolar = values["Solar"] || 0;
-  const pBattery = values["Battery"] || 0;
-  const pGrid = values["Grid"] || 0;
-  const pHome = values["Home"] || 0;
-  const getDuration = (val: number) => {
-    const abs = Math.abs(val);
-    if (abs < 10) return 0;
-    return Math.max(0.5, 9 - Math.log(abs));
-  };
-  const minimumPower = 3;
-  const bridgePower = pSolar + pGrid;
-  const bridgeColor =
-    pSolar > minimumPower && pGrid > minimumPower
-      ? "--mantine-color-orange-4"
-      : pSolar > minimumPower
-        ? "--mantine-color-yellow-4"
-        : pGrid > minimumPower
-          ? "--mantine-color-red-4"
-          : "--mantine-color-green-4";
-  // Responsive breakpoints based on pixel width
+  // Extract Power Values
+  const pSolar = Math.max(0, values["Solar"] || 0);
+  const pBattery = values["Battery"] || 0; // +Discharge, -Charge
+  const pGrid = values["Grid"] || 0; // +Import, -Export
+  const pHome = Math.max(0, values["Home"] || 0);
+  // Derived Flows at Junctions
+  // TrunkL (Left Junction): Connects Solar, Grid, Bridge
+  // TrunkR (Right Junction): Connects Home, Battery, Bridge
+  const bridgeFlow = pSolar + pGrid;
+
+  // Colors
+  const cSolar = theme.colors.yellow[4];
+  const cGrid = theme.colors.red[4];
+  const cBatt = theme.colors.green[4];
+  const cHome = theme.colors.blue[4];
+  const cBridge =
+    bridgeFlow > 0
+      ? pSolar > 0 && pGrid > 0
+        ? theme.colors.orange[4]
+        : pSolar > 0
+          ? cSolar
+          : cGrid
+      : pBattery > 0
+        ? cBatt
+        : cHome; // Flowing Left? Rare/Impossible usually unless export from batt
+
+  // Layout Constants
   const iconSize = Math.min(actualWidth / 12, 64);
   const boxSize = iconSize + 2;
-  const leftPct = "25%";
-  const rightPct = "75%";
-  const topPct = "30%";
-  const bottomPct = "75%";
   const leftX = actualWidth * 0.25 + boxSize / 2;
-  const centerShift = 50;
   const rightX = actualWidth * 0.75 - boxSize / 2;
   const center = actualWidth / 2;
   const vcenter = actualHeight / 2;
   const topY = actualHeight * 0.3;
   const bottomY = actualHeight * 0.75;
+  const trunkOffset = Math.min(50, actualWidth * 0.08);
+  const trunkL_X = center - trunkOffset;
+  const trunkR_X = center + trunkOffset;
+
+  const MIN_POWER = 10;
+  const MIN_SPAWN_RATE = 0.2;
+  const MIN_SPEED = 20;
+
+  // Waypoints
+  const points = useMemo(
+    () => ({
+      Solar: { x: leftX - boxSize / 2, y: topY - boxSize / 2 },
+      Grid: { x: leftX - boxSize / 2, y: bottomY - boxSize / 2 },
+      Home: { x: rightX - boxSize / 2, y: topY - boxSize / 2 },
+      Battery: { x: rightX - boxSize / 2, y: bottomY - boxSize / 2 },
+      TrunkL_Top: { x: trunkL_X - boxSize / 2, y: topY - boxSize / 2 },
+      TrunkL_Bot: { x: trunkL_X - boxSize / 2, y: bottomY - boxSize / 2 },
+      TrunkL_Mid: { x: trunkL_X - boxSize / 2, y: vcenter - boxSize / 2 },
+      TrunkR_Top: { x: trunkR_X - boxSize / 2, y: topY - boxSize / 2 },
+      TrunkR_Bot: { x: trunkR_X - boxSize / 2, y: bottomY - boxSize / 2 },
+      TrunkR_Mid: { x: trunkR_X - boxSize / 2, y: vcenter - boxSize / 2 },
+    }),
+    [leftX, rightX, topY, bottomY, trunkL_X, trunkR_X, vcenter],
+  );
+
+  // Particle Logic
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Handle high-DPI
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = actualWidth * dpr;
+    canvas.height = actualHeight * dpr;
+    ctx.scale(dpr, dpr);
+
+    let lastTime = performance.now();
+    const spawnAccumulator: Record<string, number> = {
+      Solar: 0,
+      Grid: 0,
+      Battery: 0,
+      BridgeBack: 0,
+    };
+
+    const animate = (time: number) => {
+      const dt = (time - lastTime) / 1000;
+      lastTime = time;
+
+      // Remove particles on paths where power is now 0
+      particlesRef.current = particlesRef.current.filter((p) => {
+        if (p.source === "Solar") return pSolar > MIN_POWER;
+        if (p.source === "Grid") return Math.abs(pGrid) > MIN_POWER;
+        if (p.source === "Battery") return Math.abs(pBattery) > MIN_POWER;
+        if (p.source === "Home") return pHome > MIN_POWER;
+        if (p.source === "Bridge") return Math.abs(bridgeFlow) > MIN_POWER;
+        return true;
+      });
+
+      ctx.clearRect(0, 0, actualWidth, actualHeight);
+
+      // Draw Paths (Static Background Lines)
+      ctx.lineWidth = 1;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      const drawPath = (pts: Point[], color: string) => {
+        if (pts.length < 2) return;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.3;
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+      };
+
+      // Solar Path
+      if (pSolar > 0)
+        drawPath([points.Solar, points.TrunkL_Top, points.TrunkL_Mid], cSolar);
+      // Grid Path (Import/Export)
+      if (pGrid !== 0)
+        drawPath([points.Grid, points.TrunkL_Bot, points.TrunkL_Mid], cGrid);
+      // Battery Path (Charge/Discharge)
+      if (pBattery !== 0)
+        drawPath([points.Battery, points.TrunkR_Bot, points.TrunkR_Mid], cBatt);
+      // Home Path
+      if (pHome > 0)
+        drawPath([points.TrunkR_Mid, points.TrunkR_Top, points.Home], cHome);
+      // Bridge Path
+      if (Math.abs(bridgeFlow) > 0)
+        drawPath([points.TrunkL_Mid, points.TrunkR_Mid], cBridge);
+
+      // Spawning Logic
+      const calculateSpeed = (watts: number) => {
+        return Math.max(MIN_SPEED, 20 * Math.log(watts));
+      };
+
+      const calculateRate = (watts: number) => {
+        if (watts <= MIN_POWER) return 0;
+        return Math.max(MIN_SPAWN_RATE, Math.log(watts / 1000));
+      };
+
+      const trySpawn = (
+        source: "Solar" | "Grid" | "Battery",
+        watts: number,
+        startPath: Point[],
+        color: string,
+      ) => {
+        const rate = calculateRate(watts);
+        spawnAccumulator[source] += rate * dt;
+        if (spawnAccumulator[source] >= 1) {
+          spawnAccumulator[source] -= 1;
+          const p: Particle = {
+            x: startPath[0].x,
+            y: startPath[0].y,
+            target: startPath[1],
+            path: startPath.slice(2),
+            speed: calculateSpeed(watts),
+            color: color,
+            id: particleIdCounter.current++,
+            source: source,
+          };
+          particlesRef.current.push(p);
+        }
+      };
+
+      // Spawn Sources
+      if (pSolar > MIN_POWER)
+        trySpawn(
+          "Solar",
+          pSolar,
+          [points.Solar, points.TrunkL_Top, points.TrunkL_Mid],
+          cSolar,
+        );
+      if (pGrid > MIN_POWER)
+        trySpawn(
+          "Grid",
+          pGrid,
+          [points.Grid, points.TrunkL_Bot, points.TrunkL_Mid],
+          cGrid,
+        ); // Import
+      if (pBattery > MIN_POWER)
+        trySpawn(
+          "Battery",
+          pBattery,
+          [points.Battery, points.TrunkR_Bot, points.TrunkR_Mid],
+          cBatt,
+        ); // Discharge
+
+      // Update Particles
+      for (let i = particlesRef.current.length - 1; i >= 0; i--) {
+        const p = particlesRef.current[i];
+
+        // Move towards target
+        const dx = p.target.x - p.x;
+        const dy = p.target.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (dist < p.speed * dt) {
+          // Reached target
+          p.x = p.target.x;
+          p.y = p.target.y;
+
+          // Logic at Junctions
+          // Reached TrunkL_Mid?
+          if (p.x === points.TrunkL_Mid.x && p.y === points.TrunkL_Mid.y) {
+            // Decision: Go Bridge or Go Grid Export?
+            // Simple logic: If BridgeFlow > 0, go Right. If pGrid < 0 (Export), some go down.
+            // For now, assume simplified flow: All inputs at L go to R (Bridge) OR Export.
+
+            const totalOut = Math.max(0, bridgeFlow) + Math.max(0, -pGrid);
+            const roll = Math.random() * totalOut;
+
+            if (roll < Math.max(0, -pGrid)) {
+              // Export to Grid
+              p.target = points.TrunkL_Bot;
+              p.path = [points.Grid];
+              p.color = cGrid;
+              p.speed = calculateSpeed(Math.abs(pGrid));
+              p.source = "Grid";
+            } else {
+              // Go to Bridge
+              p.target = points.TrunkR_Mid;
+              p.path = [];
+              p.color = cBridge; // Change color on bridge
+              p.source = "Bridge";
+            }
+          }
+          // Reached TrunkR_Mid? (Coming from Bridge or Battery)
+          else if (p.x === points.TrunkR_Mid.x && p.y === points.TrunkR_Mid.y) {
+            // Outflows from TrunkR: Home (always), Battery (if Charging), Bridge (if Exporting)
+            const flowToHome = pHome;
+            const flowToBatt = Math.max(0, -pBattery);
+            const flowToBridge = bridgeFlow < 0 ? Math.abs(bridgeFlow) : 0;
+
+            const totalDemand = flowToHome + flowToBatt + flowToBridge;
+            const roll = Math.random() * totalDemand;
+
+            if (roll < flowToBatt) {
+              // Charge Battery
+              p.target = points.TrunkR_Bot;
+              p.path = [points.Battery];
+              p.color = cBatt;
+              p.speed = calculateSpeed(Math.abs(pBattery));
+              p.source = "Battery";
+            } else if (roll < flowToBatt + flowToHome) {
+              // Home
+              p.target = points.TrunkR_Top;
+              p.path = [points.Home];
+              p.color = cHome;
+              p.speed = calculateSpeed(pHome);
+              p.source = "Home";
+            } else {
+              // Go to Bridge (Left)
+              p.target = points.TrunkL_Mid;
+              p.path = [];
+              p.color = cBridge;
+              p.source = "Bridge";
+            }
+          }
+          // Normal Path following
+          else if (p.path.length > 0) {
+            p.target = p.path.shift()!;
+          } else {
+            // End of line
+            particlesRef.current.splice(i, 1);
+            continue;
+          }
+        } else {
+          // Move
+          const moveDist = p.speed * dt;
+          p.x += (dx / dist) * moveDist;
+          p.y += (dy / dist) * moveDist;
+        }
+
+        // Draw Particle
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+      }
+
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(requestRef.current);
+  }, [
+    actualWidth,
+    actualHeight,
+    points,
+    pSolar,
+    pGrid,
+    pBattery,
+    pHome,
+    bridgeFlow,
+  ]); // Re-bind on metric change
+
   return (
     <Panel title={panel.title} onClick={() => onClick?.({ timeframe })}>
       <Box ref={ref} h={height} pos="relative">
@@ -212,90 +497,15 @@ export function CurrentPowerFlow({
           </Box>
         )}
 
-        {/* SVG Background Layer for Paths */}
+        {/* Canvas Layer */}
         <Box className={flowClasses.svgLayer}>
-          <svg width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
-            {/* Solar -> TrunkL */}
-            {pSolar > minimumPower && (
-              <path
-                d={`M ${leftX} ${topY} L ${center - centerShift} ${topY} L ${center - centerShift} ${vcenter}`}
-                className={classes.flowAnimation}
-                style={{
-                  stroke: "var(--mantine-color-yellow-4)",
-                  animationDuration: `${getDuration(pSolar)}s`,
-                }}
-              />
-            )}
-
-            {/* Grid <-> TrunkL */}
-            {Math.abs(pGrid) > minimumPower && (
-              <path
-                d={
-                  pGrid > 0
-                    ? `M ${leftX} ${bottomY} L ${center - centerShift} ${bottomY} L ${center - centerShift} ${vcenter}`
-                    : `M ${center - centerShift} ${vcenter} L ${center - centerShift} ${bottomY} L ${leftX} ${bottomY}`
-                }
-                className={classes.flowAnimation}
-                style={{
-                  stroke: "var(--mantine-color-red-4)",
-                  animationDuration: `${getDuration(pGrid)}s`,
-                }}
-              />
-            )}
-
-            {/* Battery <-> TrunkR */}
-            {Math.abs(pBattery) > minimumPower && (
-              <path
-                d={
-                  pBattery > 0
-                    ? `M ${rightX} ${bottomY} L ${center + centerShift} ${bottomY} L ${center + centerShift} ${vcenter}`
-                    : `M ${center + centerShift} ${vcenter} L ${center + centerShift} ${bottomY} L ${rightX} ${bottomY}`
-                }
-                className={classes.flowAnimation}
-                style={{
-                  stroke: "var(--mantine-color-green-4)",
-                  animationDuration: `${getDuration(pBattery)}s`,
-                }}
-              />
-            )}
-
-            {/* TrunkR -> Home */}
-            {pHome > minimumPower && (
-              <path
-                d={`M ${center + centerShift} ${vcenter} L ${center + centerShift} ${topY} L ${rightX} ${topY}`}
-                className={classes.flowAnimation}
-                style={{
-                  stroke: "var(--mantine-color-blue-4)",
-                  animationDuration: `${getDuration(pHome)}s`,
-                }}
-              />
-            )}
-
-            {/* Bridge: TrunkL <-> TrunkR */}
-            {Math.abs(bridgePower) > minimumPower && (
-              <path
-                d={
-                  bridgePower > 0
-                    ? `M ${center - centerShift} ${vcenter} L ${center + centerShift} ${vcenter}`
-                    : `M ${center + centerShift} ${vcenter} L ${center - centerShift} ${vcenter}`
-                }
-                className={classes.flowAnimation}
-                style={{
-                  stroke: `var(${bridgeColor})`,
-                  animationDuration: `${getDuration(bridgePower)}s`,
-                }}
-              />
-            )}
-          </svg>
+          <canvas ref={canvasRef} style={{ width: "100%", height: "100%" }} />
         </Box>
 
-        {/* Content Layer (Absolute Positioned Nodes aligned with SVG) */}
+        {/* Content Layer (Nodes) */}
         <Box
           className={flowClasses.nodePosition}
-          style={{
-            top: topPct,
-            left: leftPct,
-          }}
+          style={{ top: topY - boxSize / 2, left: leftX - boxSize / 2 }}
         >
           <FlowNode
             title="Solar"
@@ -314,10 +524,7 @@ export function CurrentPowerFlow({
 
         <Box
           className={flowClasses.nodePosition}
-          style={{
-            top: topPct,
-            left: rightPct,
-          }}
+          style={{ top: topY - boxSize / 2, left: rightX - boxSize / 2 }}
         >
           <FlowNode
             title="Home"
@@ -333,10 +540,7 @@ export function CurrentPowerFlow({
 
         <Box
           className={flowClasses.nodePosition}
-          style={{
-            top: bottomPct,
-            left: leftPct,
-          }}
+          style={{ top: bottomY - boxSize / 2, left: leftX - boxSize / 2 }}
         >
           <FlowNode
             title="Grid"
@@ -362,10 +566,7 @@ export function CurrentPowerFlow({
 
         <Box
           className={flowClasses.nodePosition}
-          style={{
-            top: bottomPct,
-            left: rightPct,
-          }}
+          style={{ top: bottomY - boxSize / 2, left: rightX - boxSize / 2 }}
         >
           <FlowNode
             title="Battery"

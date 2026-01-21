@@ -12,6 +12,16 @@
 .nodeBox {
   position: relative;
 }
+.flowBall {
+  r: 3;
+  animation-name: move;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-duration: var(--flow-duration, 2s);
+  transform-origin: 0 0;
+  will-change: transform;
+  stroke-width: calc(0.4vw);
+}
 
 .nodeLabelContainer {
   position: absolute;
@@ -44,6 +54,10 @@
   bottom: 0;
   pointer-events: none;
   z-index: 1;
+  svg {
+    transform: translateZ(0);
+    will-change: transform;
+  }
 }
 
 .nodePosition {
