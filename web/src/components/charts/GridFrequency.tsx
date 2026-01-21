@@ -35,81 +35,55 @@ export function GridFrequency({
     { name: "frequency_hertz", label: "Site", all: true },
     { name: "inverter_frequency_hertz", label: "Inverter", all: true },
   ];
-  const { rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
     undefined,
     undefined,
     zoomRange,
+    false
   );
 
   const activeSeries: any[] = [];
+  // Start with timestamps
+  const finalChartData: [(number | null)[], ...(number | null)[][]] = [
+    (chartData && chartData[0]) ? (chartData[0] as (number | null)[]) : []
+  ];
 
-  const timestamps = new Set<number>();
+  if (chartData && seriesKeys) {
+    seriesKeys.forEach((key, index) => {
+      // chartData[0] is timestamps, so series data is at index + 1
+      const colData = chartData[index + 1];
+      if (!colData) return;
 
-  if (rawResults) {
-    Object.values(rawResults).forEach((pts) =>
-      pts.forEach((p) => timestamps.add(p.Timestamp)),
-    );
-  }
+      const hasData = colData.some((v) => v !== 0 && v !== null);
 
-  const sortedTs = Array.from(timestamps).sort((a, b) => a - b);
-
-  const chartData: [(number | null)[], ...(number | null)[][]] = [sortedTs];
-
-  if (rawResults) {
-    Object.keys(rawResults)
-      .sort()
-      .forEach((key) => {
-        const pts = rawResults[key];
-
-        const dataMap = new Map(pts.map((p) => [p.Timestamp, p.Value]));
-
-        const hasData = pts.some((p) => p.Value !== 0);
-
-        if (hasData) {
-          // Format name
-
-          let name = key;
-
-          // Parse key like "Site site=load" -> "Load"
-
-          if (key.startsWith("Site")) {
-            if (key.includes("site=load")) name = "Load";
-            else if (key.includes("site=site")) name = "Grid";
-          } else if (key.startsWith("Inverter")) {
-            // "Inverter index=0" -> "Inverter 0"
-
-            const match = key.match(/index=(\d+)/);
-
-            if (match) name = `Inverter ${match[1]}`;
-          }
-
-          activeSeries.push({
-            name: name,
-
-            color: getDynamicColor(name),
-
-            unit: "Hz",
-          });
-
-          // Align data
-
-          const aligned = sortedTs.map((ts) => {
-            const val = dataMap.get(ts);
-            return val !== undefined && val !== 0 ? val : null;
-          });
-          chartData.push(aligned);
+      if (hasData) {
+        let name = key;
+        if (key.startsWith("Site")) {
+          if (key.includes("site=load")) name = "Load";
+          else if (key.includes("site=site")) name = "Grid";
+        } else if (key.startsWith("Inverter")) {
+          const match = key.match(/index=(\d+)/);
+          if (match) name = `Inverter ${match[1]}`;
         }
-      });
+
+        activeSeries.push({
+          name: name,
+          color: getDynamicColor(name),
+          unit: "Hz",
+        });
+        finalChartData.push(colData as (number | null)[]);
+      }
+    });
   }
 
   return (
     <ChartPanel
       title={panel.title}
       series={activeSeries}
-      data={chartData as any}
+      data={finalChartData as any}
       onClick={onClick}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}

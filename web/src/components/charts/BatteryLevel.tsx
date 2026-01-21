@@ -46,19 +46,20 @@ export function BatteryLevel({
     },
   ];
 
-  const { chartData, rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
     undefined,
     undefined,
     zoomRange,
+    false
   );
   const series: any[] = [];
-  const remainingKeys = Object.keys(rawResults)
+  const remainingKeys = seriesKeys
     .filter((k) => k.includes("Remaining"))
     .sort();
-  const capacityKeys = Object.keys(rawResults)
+  const capacityKeys = seriesKeys
     .filter((k) => k.includes("Capacity"))
     .sort();
 

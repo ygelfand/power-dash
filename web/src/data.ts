@@ -71,36 +71,35 @@ export async function fetchDashboards(): Promise<DashboardConfig[]> {
 
   cachedDashboards = (async () => {
     try {
-        const resp = await fetch("/api/v1/dashboards");
-        if (!resp.ok) {
-            throw new Error(`Failed to fetch dashboards: ${resp.statusText}`);
-        }
-        const rawDashboards: any[] = await resp.json();
+      const resp = await fetch("/api/v1/dashboards");
+      if (!resp.ok) {
+        throw new Error(`Failed to fetch dashboards: ${resp.statusText}`);
+      }
+      const rawDashboards: any[] = await resp.json();
 
-        return rawDashboards.map((db) => ({
+      return rawDashboards.map((db) => ({
         ...db,
         panels: (db.panels || []).map((p: RawPanelConfig) => {
-            const def = PanelDefaults[p.name] || {};
-            return {
+          const def = PanelDefaults[p.name] || {};
+          return {
             ...def,
             ...p,
-                      title: p.title || (def.title as string) || p.name,
-                      component: p.component || (def.component as string),
-                      size: p.size || (def.size as number) || 12,
-                      height: p.height || (def.height as number),
-                      showLegend:
-            
-                p.showLegend !== undefined
+            title: p.title || (def.title as string) || p.name,
+            component: p.component || (def.component as string),
+            size: p.size || (def.size as number) || 12,
+            height: p.height || (def.height as number),
+            showLegend:
+              p.showLegend !== undefined
                 ? p.showLegend
                 : (def.showLegend as boolean),
             params: { ...(def.params || {}), ...(p.params || {}) },
-            } as PanelConfig;
+          } as PanelConfig;
         }),
-        }));
+      }));
     } catch (e: any) {
-        cachedDashboards = null; // Clear on error to allow retry
-        notifyError("Dashboard Load Failed", e.message);
-        throw e;
+      cachedDashboards = null; // Clear on error to allow retry
+      notifyError("Dashboard Load Failed", e.message);
+      throw e;
     }
   })();
 
@@ -116,66 +115,66 @@ export async function batchQueryMetrics(
 ): Promise<Record<string, DataPoint[]>> {
   try {
     const resp = await fetch("/api/v1/query", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         metrics: metrics.map((m) => ({
-            name: m.name,
-            label: m.label,
-            tags: m.tags,
-            all: m.all,
+          name: m.name,
+          label: m.label,
+          tags: m.tags,
+          all: m.all,
         })),
         start,
         end,
         step,
         function: func,
-        }),
+      }),
     });
     if (!resp.ok) throw new Error(`Query failed: ${resp.statusText}`);
     const rawData = await resp.json();
     const results: Record<string, DataPoint[]> = {};
     Object.keys(rawData).forEach((key) => {
-        results[key] = (rawData[key] || []).map((p: any) => ({
+      results[key] = (rawData[key] || []).map((p: any) => ({
         Value: p.v,
         Timestamp: p.t,
-        }));
+      }));
     });
     return results;
   } catch (e: any) {
-      notifyError("Data Query Failed", e.message);
-      throw e;
+    notifyError("Data Query Failed", e.message);
+    throw e;
   }
 }
 
 export async function queryLatestMetrics(
-  metrics: MetricQuery[]
+  metrics: MetricQuery[],
 ): Promise<Record<string, DataPoint>> {
   try {
     const resp = await fetch("/api/v1/latest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         metrics: metrics.map((m) => ({
-            name: m.name,
-            label: m.label,
-            tags: m.tags,
+          name: m.name,
+          label: m.label,
+          tags: m.tags,
         })),
-        }),
+      }),
     });
     if (!resp.ok) throw new Error(`Latest query failed: ${resp.statusText}`);
     const rawData = await resp.json();
     const results: Record<string, DataPoint> = {};
     Object.keys(rawData).forEach((key) => {
-        if (rawData[key]) {
+      if (rawData[key]) {
         results[key] = {
-            Value: rawData[key].v,
-            Timestamp: rawData[key].t,
+          Value: rawData[key].v,
+          Timestamp: rawData[key].t,
         };
-        }
+      }
     });
     return results;
   } catch (e: any) {
-      notifyError("Live Data Failed", e.message);
-      throw e;
+    notifyError("Live Data Failed", e.message);
+    throw e;
   }
 }

@@ -35,30 +35,38 @@ export function InverterVoltage({
   const metrics = [
     { name: "inverter_voltage_volts", label: "Inverter", all: true },
   ];
-  const { chartData, rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
     undefined,
     undefined,
     zoomRange,
+    false
   );
 
-  const sortedKeys = Object.keys(rawResults)
-    .sort()
-    .filter((key) => rawResults[key].some((p) => p.Value !== 0));
-  
-  const finalSeries = sortedKeys.map((key) => ({
-      name: key,
-      color: getDynamicColor(key),
-      unit: "V",
-  }));
+  const finalSeries: any[] = [];
+  const finalChartData: any[] = [(chartData && chartData[0]) || []];
+
+  if (chartData && seriesKeys) {
+    seriesKeys.forEach((key, i) => {
+      const col = chartData[i + 1];
+      if (col && col.some((v) => v !== 0 && v !== null)) {
+        finalSeries.push({
+          name: key,
+          color: getDynamicColor(key),
+          unit: "V",
+        });
+        finalChartData.push(col);
+      }
+    });
+  }
 
   return (
     <ChartPanel
       title={panel.title}
       series={finalSeries}
-      data={chartData}
+      data={finalChartData as any}
       onClick={onClick}
       timeframe={localTf}
       onTimeframeChange={handleTfChange}

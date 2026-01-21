@@ -22,16 +22,17 @@ export function SolarStringCurrent({ panel, height, timeframe, onClick, showLege
 
     const getDynamicColor = useDynamicColor();
     const metrics = [{ name: 'solar_current_amps', label: 'String', all: true }];
-    const { chartData, rawResults, loading } = useChartData(
+    const { chartData, seriesKeys, loading } = useChartData(
         metrics, 
         localTf, 
         undefined, 
         undefined, 
         undefined, 
-        zoomRange
+        zoomRange,
+        false
     );
 
-    const series = Object.keys(rawResults).sort().map((name) => {
+    const series = seriesKeys.sort().map((name) => {
         return {
             name: name,
             color: getDynamicColor(name),

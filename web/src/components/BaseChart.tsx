@@ -1,5 +1,9 @@
 import { useMantineColorScheme, Text, Box, Center } from "@mantine/core";
-import { useElementSize, useDebouncedValue, useMediaQuery } from "@mantine/hooks";
+import {
+  useElementSize,
+  useDebouncedValue,
+  useMediaQuery,
+} from "@mantine/hooks";
 import UplotReact from "uplot-react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
@@ -463,7 +467,6 @@ export function BaseChart({
         <div style={{ flexGrow: 1, minWidth: 0 }}>
           {width > 0 && (
             <UplotReact
-              key={`${isDark}-${series.length}-${JSON.stringify(uniqueUnits)}-${timeframe}-${isZoomed}-${JSON.stringify(zoomRange)}`}
               options={options}
               data={data}
               resetScales={false}

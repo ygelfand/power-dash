@@ -116,12 +116,14 @@ export function useChartData(
   step?: number,
   func?: string,
   zoomRange?: [number, number] | null,
+  needRawResults: boolean = true,
 ) {
   const [chartData, setChartData] = useState<
     [number[], ...number[][]] | undefined
   >();
   const [loading, setLoading] = useState(true);
   const [rawResults, setRawResults] = useState<Record<string, DataPoint[]>>({});
+  const [seriesKeys, setSeriesKeys] = useState<string[]>([]);
 
   const metricsStr = JSON.stringify(metrics);
   const zoomRangeStr = JSON.stringify(zoomRange);
@@ -176,24 +178,29 @@ export function useChartData(
         queryStep,
         func,
       );
-      setRawResults(results);
+      if (needRawResults) {
+        setRawResults(results);
+      } else {
+        setRawResults({});
+      }
 
       const sortedTs = alignTimestamps(results);
       const data: (number[] | (number | null)[])[] = [sortedTs];
 
-      const seriesKeys: string[] = [];
+      const keys: string[] = [];
       metrics.forEach((m) => {
         if (m.all) {
           const matchingKeys = Object.keys(results)
             .filter((k) => k.startsWith(m.label))
             .sort();
-          seriesKeys.push(...matchingKeys);
+          keys.push(...matchingKeys);
         } else {
-          seriesKeys.push(m.label);
+          keys.push(m.label);
         }
       });
+      setSeriesKeys(keys);
 
-      seriesKeys.forEach((k) => {
+      keys.forEach((k) => {
         const ptsMap = new Map(
           (results[k] || []).map((p) => [p.Timestamp, p.Value]),
         );
@@ -218,7 +225,8 @@ export function useChartData(
     step,
     func,
     zoomRangeStr,
+    needRawResults,
   ]);
 
-  return { chartData, loading, rawResults };
+  return { chartData, loading, rawResults, seriesKeys };
 }
