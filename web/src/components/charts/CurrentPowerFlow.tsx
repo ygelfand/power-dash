@@ -180,11 +180,16 @@ export function CurrentPowerFlow({
     return `${prefix}${abs.toFixed(0)} W`;
   };
 
-  // Extract Power Values
   const pSolar = Math.max(0, values["Solar"] || 0);
   const pBattery = values["Battery"] || 0; // +Discharge, -Charge
   const pGrid = values["Grid"] || 0; // +Import, -Export
   const pHome = Math.max(0, values["Home"] || 0);
+  /* test data
+  const pSolar = 0;
+  const pBattery = 5000;
+  const pHome = 4900;
+  const pGrid = -100;
+  */
   // Derived Flows at Junctions
   // TrunkL (Left Junction): Connects Solar, Grid, Bridge
   // TrunkR (Right Junction): Connects Home, Battery, Bridge
@@ -311,7 +316,7 @@ export function CurrentPowerFlow({
 
       // Spawning Logic
       const calculateSpeed = (watts: number) => {
-        return Math.max(MIN_SPEED, 20 * Math.log(watts));
+        return Math.max(MIN_SPEED, 3 * Math.sqrt(watts));
       };
 
       const calculateRate = (watts: number) => {
@@ -381,60 +386,112 @@ export function CurrentPowerFlow({
           p.y = p.target.y;
 
           // Logic at Junctions
-          // Reached TrunkL_Mid?
+          // Junction Logic: Update Speed & Path
           if (p.x === points.TrunkL_Mid.x && p.y === points.TrunkL_Mid.y) {
-            // Decision: Go Bridge or Go Grid Export?
-            // Simple logic: If BridgeFlow > 0, go Right. If pGrid < 0 (Export), some go down.
-            // For now, assume simplified flow: All inputs at L go to R (Bridge) OR Export.
+            const flowExport = Math.max(0, -pGrid);
+            const flowBridge = Math.max(0, bridgeFlow);
 
-            const totalOut = Math.max(0, bridgeFlow) + Math.max(0, -pGrid);
-            const roll = Math.random() * totalOut;
+            const targets: any[] = [];
+            if (flowExport > MIN_POWER)
+              targets.push({
+                t: points.TrunkL_Bot,
+                path: [points.Grid],
+                c: cGrid,
+                s: calculateSpeed(flowExport),
+                src: "Grid",
+              });
+            if (flowBridge > MIN_POWER)
+              targets.push({
+                t: points.TrunkR_Mid,
+                path: [],
+                c: cBridge,
+                s: calculateSpeed(Math.abs(bridgeFlow)),
+                src: "Bridge",
+              });
 
-            if (roll < Math.max(0, -pGrid)) {
-              // Export to Grid
-              p.target = points.TrunkL_Bot;
-              p.path = [points.Grid];
-              p.color = cGrid;
-              p.speed = calculateSpeed(Math.abs(pGrid));
-              p.source = "Grid";
+            if (targets.length > 0) {
+              const first = targets[0];
+              p.target = first.t;
+              p.path = first.path;
+              p.color = first.c;
+              if (first.s !== undefined) p.speed = first.s;
+              p.source = first.src;
+
+              for (let k = 1; k < targets.length; k++) {
+                const next = targets[k];
+                particlesRef.current.push({
+                  x: p.x,
+                  y: p.y,
+                  target: next.t,
+                  path: next.path,
+                  color: next.c,
+                  speed: next.s !== undefined ? next.s : p.speed,
+                  source: next.src,
+                  id: particleIdCounter.current++,
+                });
+              }
             } else {
-              // Go to Bridge
-              p.target = points.TrunkR_Mid;
-              p.path = [];
-              p.color = cBridge; // Change color on bridge
-              p.source = "Bridge";
+              particlesRef.current.splice(i, 1);
+              continue;
             }
-          }
-          // Reached TrunkR_Mid? (Coming from Bridge or Battery)
-          else if (p.x === points.TrunkR_Mid.x && p.y === points.TrunkR_Mid.y) {
-            // Outflows from TrunkR: Home (always), Battery (if Charging), Bridge (if Exporting)
+          } else if (
+            p.x === points.TrunkR_Mid.x &&
+            p.y === points.TrunkR_Mid.y
+          ) {
             const flowToHome = pHome;
             const flowToBatt = Math.max(0, -pBattery);
             const flowToBridge = bridgeFlow < 0 ? Math.abs(bridgeFlow) : 0;
 
-            const totalDemand = flowToHome + flowToBatt + flowToBridge;
-            const roll = Math.random() * totalDemand;
+            const targets: any[] = [];
+            if (flowToBatt > MIN_POWER)
+              targets.push({
+                t: points.TrunkR_Bot,
+                path: [points.Battery],
+                c: cBatt,
+                s: calculateSpeed(flowToBatt),
+                src: "Battery",
+              });
+            if (flowToHome > MIN_POWER)
+              targets.push({
+                t: points.TrunkR_Top,
+                path: [points.Home],
+                c: cHome,
+                s: calculateSpeed(flowToHome),
+                src: "Home",
+              });
+            if (flowToBridge > MIN_POWER)
+              targets.push({
+                t: points.TrunkL_Mid,
+                path: [],
+                c: cBridge,
+                s: calculateSpeed(flowToBridge),
+                src: "Bridge",
+              });
 
-            if (roll < flowToBatt) {
-              // Charge Battery
-              p.target = points.TrunkR_Bot;
-              p.path = [points.Battery];
-              p.color = cBatt;
-              p.speed = calculateSpeed(Math.abs(pBattery));
-              p.source = "Battery";
-            } else if (roll < flowToBatt + flowToHome) {
-              // Home
-              p.target = points.TrunkR_Top;
-              p.path = [points.Home];
-              p.color = cHome;
-              p.speed = calculateSpeed(pHome);
-              p.source = "Home";
+            if (targets.length > 0) {
+              const first = targets[0];
+              p.target = first.t;
+              p.path = first.path;
+              p.color = first.c;
+              if (first.s !== undefined) p.speed = first.s;
+              p.source = first.src;
+
+              for (let k = 1; k < targets.length; k++) {
+                const next = targets[k];
+                particlesRef.current.push({
+                  x: p.x,
+                  y: p.y,
+                  target: next.t,
+                  path: next.path,
+                  color: next.c,
+                  speed: next.s !== undefined ? next.s : p.speed,
+                  source: next.src,
+                  id: particleIdCounter.current++,
+                });
+              }
             } else {
-              // Go to Bridge (Left)
-              p.target = points.TrunkL_Mid;
-              p.path = [];
-              p.color = cBridge;
-              p.source = "Bridge";
+              particlesRef.current.splice(i, 1);
+              continue;
             }
           }
           // Normal Path following
@@ -459,7 +516,7 @@ export function CurrentPowerFlow({
         gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
         ctx.fillStyle = gradient;
         ctx.fill();
       }
