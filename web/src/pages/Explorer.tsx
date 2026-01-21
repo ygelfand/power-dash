@@ -5,7 +5,6 @@ import {
   Stack,
   TextInput,
   Button,
-  Code,
   Group,
   Table,
   ScrollArea,
