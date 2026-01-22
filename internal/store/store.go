@@ -106,23 +106,20 @@ func NewStore(cfg Config, logger *zap.Logger) (*Store, error) {
 		return nil, fmt.Errorf("failed to create data path: %w", err)
 	}
 
-	slogger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	slogger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 	opts := tsdb.DefaultOptions()
 	opts.RetentionDuration = int64(cfg.Retention / time.Millisecond)
 	// Enable OOO support for historical imports (10 years window)
 	opts.OutOfOrderTimeWindow = 10 * 365 * 24 * 60 * 60 * 1000
 
-	if cfg.PartitionDuration > 0 { // MinBlockDuration controls when Head is flushed to disk. Keep it small (30m) for safety.
+	if cfg.PartitionDuration > 0 {
+		// MinBlockDuration controls when Head is flushed to disk. Keep it small (2h) for safety.
 		// MaxBlockDuration controls how large blocks can grow via compaction (reducing directory count).
-		defaultMin := int64(30 * time.Minute / time.Millisecond)
+		defaultMin := int64(12 * time.Hour / time.Millisecond)
 		targetMax := int64(cfg.PartitionDuration / time.Millisecond)
 
-		if targetMax < defaultMin {
-			opts.MinBlockDuration = targetMax
-		} else {
-			opts.MinBlockDuration = defaultMin
-		}
+		opts.MinBlockDuration = min(defaultMin, targetMax)
 		opts.MaxBlockDuration = targetMax
 	}
 
@@ -369,174 +366,260 @@ func (s *Store) GetAllSeries() map[string]map[string][]Label {
 	return result
 }
 
-func (s *Store) Flush() error      { return s.db.Compact(context.Background()) }
-func (s *Store) Checkpoint() error { return nil }
-
-func (s *Store) append(app storage.Appender, metric string, lset labels.Labels, t int64, v float64) {
-	b := labels.NewBuilder(lset)
-	b.Set(labels.MetricName, metric)
-	_, _ = app.Append(0, b.Labels(), t, v)
+func (s *Store) Flush() error {
+	s.logger.Info("Triggering manual compaction (Flush)")
+	err := s.db.Compact(context.Background())
+	if err != nil {
+		s.logger.Error("Manual compaction (Flush) failed", zap.Error(err))
+	}
+	return err
 }
 
-func (s *Store) appendIfSet(app storage.Appender, metric string, lset labels.Labels, t int64, v *float64) {
-	if v != nil {
-		s.append(app, metric, lset, t, *v)
+func (s *Store) Checkpoint() error {
+	s.logger.Info("Triggering manual compaction (Checkpoint)")
+	err := s.db.Compact(context.Background())
+	if err != nil {
+		s.logger.Error("Manual compaction (Checkpoint) failed", zap.Error(err))
 	}
+	return err
+}
+
+func (s *Store) insertData(fn func(app storage.Appender) error) error {
+	app := s.db.Appender(context.Background())
+	if err := fn(app); err != nil {
+		if rbErr := app.Rollback(); rbErr != nil {
+			s.logger.Error("Failed to rollback appender", zap.Error(rbErr))
+		}
+		return err
+	}
+	if err := app.Commit(); err != nil {
+		s.logger.Error("Failed to commit data batch", zap.Error(err))
+		return err
+	}
+	return nil
+}
+
+func (s *Store) safeAppend(app storage.Appender, metric string, lset labels.Labels, t int64, v float64) error {
+	b := labels.NewBuilder(lset)
+	b.Set(labels.MetricName, metric)
+	_, err := app.Append(0, b.Labels(), t, v)
+	if err != nil {
+		s.logger.Error("Append failed", zap.String("metric", metric), zap.Error(err))
+	}
+	return err
+}
+
+func (s *Store) safeAppendIfSet(app storage.Appender, metric string, lset labels.Labels, t int64, v *float64) error {
+	if v != nil {
+		return s.safeAppend(app, metric, lset, t, *v)
+	}
+	return nil
 }
 
 func (s *Store) InsertCollectionMark(ts time.Time) error {
-	app := s.db.Appender(context.Background())
-	_, err := app.Append(0, labels.FromStrings(labels.MetricName, "collection_mark"), ts.UnixMilli(), 1)
-	if err != nil {
-		return err
-	}
-	return app.Commit()
+	return s.insertData(func(app storage.Appender) error {
+		return s.safeAppend(app, "collection_mark", labels.EmptyLabels(), ts.UnixMilli(), 1)
+	})
 }
 
 func (s *Store) InsertMeterReadings(readings []MeterReading) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t := r.Timestamp.UnixMilli()
-		labelsList := []string{"site", r.Site}
-		if r.Phase != nil {
-			labelsList = append(labelsList, "phase", *r.Phase)
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t := r.Timestamp.UnixMilli()
+			labelsList := []string{"site", r.Site}
+			if r.Phase != nil {
+				labelsList = append(labelsList, "phase", *r.Phase)
+			}
+			l := labels.FromStrings(labelsList...)
+			if err := s.safeAppendIfSet(app, "power_watts", l, t, r.Power); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "power_reactive_var", l, t, r.Reactive); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "power_apparent_va", l, t, r.Apparent); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "voltage_volts", l, t, r.Voltage); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "current_amps", l, t, r.Current); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "frequency_hertz", l, t, r.Frequency); err != nil {
+				return err
+			}
+			if r.Imported != nil {
+				if err := s.safeAppend(app, "energy_wh", labels.FromStrings("site", r.Site, "direction", "import"), t, *r.Imported); err != nil {
+					return err
+				}
+			}
+			if r.Exported != nil {
+				if err := s.safeAppend(app, "energy_wh", labels.FromStrings("site", r.Site, "direction", "export"), t, *r.Exported); err != nil {
+					return err
+				}
+			}
 		}
-		l := labels.FromStrings(labelsList...)
-		s.appendIfSet(app, "power_watts", l, t, r.Power)
-		s.appendIfSet(app, "power_reactive_var", l, t, r.Reactive)
-		s.appendIfSet(app, "power_apparent_va", l, t, r.Apparent)
-		s.appendIfSet(app, "voltage_volts", l, t, r.Voltage)
-		s.appendIfSet(app, "current_amps", l, t, r.Current)
-		s.appendIfSet(app, "frequency_hertz", l, t, r.Frequency)
-		if r.Imported != nil {
-			s.append(app, "energy_wh", labels.FromStrings("site", r.Site, "direction", "import"), t, *r.Imported)
-		}
-		if r.Exported != nil {
-			s.append(app, "energy_wh", labels.FromStrings("site", r.Site, "direction", "export"), t, *r.Exported)
-		}
-	}
-	return app.Commit()
+		return nil
+	})
 }
 
 func (s *Store) InsertInverterReadings(readings []InverterReading) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.InverterIndex)
-		invType := r.Type
-		if invType == "" {
-			invType = "battery"
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.InverterIndex)
+			invType := r.Type
+			if invType == "" {
+				invType = "battery"
+			}
+			l := labels.FromStrings("index", idx, "type", invType)
+			if err := s.safeAppendIfSet(app, "inverter_power_watts", l, t, r.Power); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "inverter_frequency_hertz", l, t, r.Frequency); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "1"), t, r.Voltage1); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "2"), t, r.Voltage2); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "3"), t, r.Voltage3); err != nil {
+				return err
+			}
 		}
-		l := labels.FromStrings("index", idx, "type", invType)
-		s.appendIfSet(app, "inverter_power_watts", l, t, r.Power)
-		s.appendIfSet(app, "inverter_frequency_hertz", l, t, r.Frequency)
-		s.appendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "1"), t, r.Voltage1)
-		s.appendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "2"), t, r.Voltage2)
-		s.appendIfSet(app, "inverter_voltage_volts", labels.FromStrings("index", idx, "type", invType, "phase", "3"), t, r.Voltage3)
-	}
-	return app.Commit()
+		return nil
+	})
 }
 
 func (s *Store) InsertSolarReadings(readings []SolarReading) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.InverterIndex)
-		l := labels.FromStrings("index", idx, "string", r.StringID)
-		s.appendIfSet(app, "solar_voltage_volts", l, t, r.Voltage)
-		s.appendIfSet(app, "solar_current_amps", l, t, r.Current)
-		s.appendIfSet(app, "solar_power_watts", l, t, r.Power)
-	}
-	return app.Commit()
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.InverterIndex)
+			l := labels.FromStrings("index", idx, "string", r.StringID)
+			if err := s.safeAppendIfSet(app, "solar_voltage_volts", l, t, r.Voltage); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "solar_current_amps", l, t, r.Current); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "solar_power_watts", l, t, r.Power); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *Store) InsertBatteryReadings(readings []BatteryReading) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.PodIndex)
-		if r.PodIndex == -1 {
-			if r.SOE != nil {
-				s.append(app, "battery_soe_percent", labels.EmptyLabels(), t, *r.SOE)
-			}
-		} else {
-			if r.EnergyRemaining != nil {
-				s.append(app, "battery_energy_wh", labels.FromStrings("index", idx, "type", "remaining"), t, *r.EnergyRemaining)
-			}
-			if r.EnergyCapacity != nil {
-				s.append(app, "battery_energy_wh", labels.FromStrings("index", idx, "type", "capacity"), t, *r.EnergyCapacity)
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.PodIndex)
+			if r.PodIndex == -1 {
+				if r.SOE != nil {
+					if err := s.safeAppend(app, "battery_soe_percent", labels.EmptyLabels(), t, *r.SOE); err != nil {
+						return err
+					}
+				}
+			} else {
+				if r.EnergyRemaining != nil {
+					if err := s.safeAppend(app, "battery_energy_wh", labels.FromStrings("index", idx, "type", "remaining"), t, *r.EnergyRemaining); err != nil {
+						return err
+					}
+				}
+				if r.EnergyCapacity != nil {
+					if err := s.safeAppend(app, "battery_energy_wh", labels.FromStrings("index", idx, "type", "capacity"), t, *r.EnergyCapacity); err != nil {
+						return err
+					}
+				}
 			}
 		}
-	}
-	return app.Commit()
+		return nil
+	})
 }
 
 func (s *Store) InsertSystemStatus(readings []SystemStatus) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t := r.Timestamp.UnixMilli()
-		if r.GridStatus != nil {
-			s.append(app, "grid_status_code", labels.EmptyLabels(), t, *r.GridStatus)
-		}
-		if r.ServicesActive != nil {
-			val := 0.0
-			if *r.ServicesActive {
-				val = 1.0
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t := r.Timestamp.UnixMilli()
+			if r.GridStatus != nil {
+				if err := s.safeAppend(app, "grid_status_code", labels.EmptyLabels(), t, *r.GridStatus); err != nil {
+					return err
+				}
 			}
-			s.append(app, "grid_services_active_bool", labels.EmptyLabels(), t, val)
+			if r.ServicesActive != nil {
+				val := 0.0
+				if *r.ServicesActive {
+					val = 1.0
+				}
+				if err := s.safeAppend(app, "grid_services_active_bool", labels.EmptyLabels(), t, val); err != nil {
+					return err
+				}
+			}
 		}
-	}
-	return app.Commit()
+		return nil
+	})
 }
 
 func (s *Store) InsertEnvironmentalReadings(readings []EnvironmentalReading) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.MsaIndex)
-		l := labels.FromStrings("index", idx)
-		s.appendIfSet(app, "temperature_celsius", l, t, r.AmbientTemp)
-		s.appendIfSet(app, "fan_speed_rpm", labels.FromStrings("index", idx, "type", "actual"), t, r.FanSpeedActual)
-		s.appendIfSet(app, "fan_speed_rpm", labels.FromStrings("index", idx, "type", "target"), t, r.FanSpeedTarget)
-	}
-	return app.Commit()
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			t, idx := r.Timestamp.UnixMilli(), fmt.Sprint(r.MsaIndex)
+			l := labels.FromStrings("index", idx)
+			if err := s.safeAppendIfSet(app, "temperature_celsius", l, t, r.AmbientTemp); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "fan_speed_rpm", labels.FromStrings("index", idx, "type", "actual"), t, r.FanSpeedActual); err != nil {
+				return err
+			}
+			if err := s.safeAppendIfSet(app, "fan_speed_rpm", labels.FromStrings("index", idx, "type", "target"), t, r.FanSpeedTarget); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *Store) InsertAlerts(readings []Alert) error {
 	if len(readings) == 0 {
 		return nil
 	}
-	app := s.db.Appender(context.Background())
-	for _, r := range readings {
-		s.append(app, "active_alert", labels.FromStrings("source", r.Source, "name", r.Name), r.Timestamp.UnixMilli(), 1.0)
-	}
-	return app.Commit()
+	return s.insertData(func(app storage.Appender) error {
+		for _, r := range readings {
+			if err := s.safeAppend(app, "active_alert", labels.FromStrings("source", r.Source, "name", r.Name), r.Timestamp.UnixMilli(), 1.0); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 func (s *Store) Insert(metric string, lbls []Label, value float64, timestamp int64) error {
-	app := s.db.Appender(context.Background())
-	ls := make([]string, 0, len(lbls)*2+2)
-	ls = append(ls, labels.MetricName, metric)
-	for _, l := range lbls {
-		ls = append(ls, l.Name, l.Value)
-	}
-	_, err := app.Append(0, labels.FromStrings(ls...), timestamp*1000, value)
-	if err != nil {
-		return err
-	}
-	return app.Commit()
+	return s.insertData(func(app storage.Appender) error {
+		ls := make([]string, 0, len(lbls)*2+2)
+		ls = append(ls, labels.MetricName, metric)
+		for _, l := range lbls {
+			ls = append(ls, l.Name, l.Value)
+		}
+		return s.safeAppend(app, metric, labels.FromStrings(ls...), timestamp*1000, value)
+	})
 }

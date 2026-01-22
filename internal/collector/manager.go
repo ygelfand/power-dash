@@ -162,9 +162,5 @@ func (m *Manager) runCollection() {
 	// Record collection mark
 	_ = m.store.InsertCollectionMark(start)
 
-	if err := m.store.Flush(); err != nil {
-		m.logger.Warn("Failed to flush store", zap.Error(err))
-	}
-
 	m.logger.Info("Collection cycle completed", zap.Duration("duration", time.Since(start)))
 }

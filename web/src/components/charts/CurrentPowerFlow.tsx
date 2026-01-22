@@ -279,8 +279,11 @@ export function CurrentPowerFlow({
     };
 
     const animate = (time: number) => {
-      const dt = (time - lastTime) / 1000;
+      let dt = (time - lastTime) / 1000;
       lastTime = time;
+
+      // Cap dt to prevent massive jumps (e.g. when tab loses focus)
+      if (dt > 0.1) dt = 0.1;
 
       // Remove particles on paths where power is now 0 or direction flipped
       particlesRef.current = particlesRef.current.filter((p) => {
