@@ -147,7 +147,8 @@ func (imp *Importer) RunImport(ctx context.Context, start, end time.Time, progre
 	}
 
 	imp.logger.Info("Import complete, flushing storage")
-	return imp.store.Flush()
+	_ = imp.store.Flush()
+	return imp.store.CompactOOO()
 }
 
 // Internal helper logic moved from CLI

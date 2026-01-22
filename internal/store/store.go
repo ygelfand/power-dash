@@ -366,6 +366,15 @@ func (s *Store) GetAllSeries() map[string]map[string][]Label {
 	return result
 }
 
+func (s *Store) CompactOOO() error {
+	s.logger.Info("Triggering manual compaction (OOO)")
+	err := s.db.CompactOOOHead(context.Background())
+	if err != nil {
+		s.logger.Error("Manual compaction (OOO) failed", zap.Error(err))
+	}
+	return err
+}
+
 func (s *Store) Flush() error {
 	s.logger.Info("Triggering manual compaction (Flush)")
 	err := s.db.Compact(context.Background())
