@@ -458,8 +458,11 @@ func (s *Store) InsertMeterReadings(readings []MeterReading) error {
 			if err := s.safeAppendIfSet(app, "current_amps", l, t, r.Current); err != nil {
 				return err
 			}
-			if err := s.safeAppendIfSet(app, "frequency_hertz", l, t, r.Frequency); err != nil {
-				return err
+			// site/load aggregates like to report 0 frequency
+			if r.Frequency != nil && *r.Frequency > 0 {
+				if err := s.safeAppendIfSet(app, "frequency_hertz", l, t, r.Frequency); err != nil {
+					return err
+				}
 			}
 			if r.Imported != nil {
 				if err := s.safeAppend(app, "energy_wh", labels.FromStrings("site", r.Site, "direction", "import"), t, *r.Imported); err != nil {
