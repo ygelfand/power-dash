@@ -46,7 +46,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=ygelfand/power-dash,push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=ygelfand/power-dash,name-canonical=true,push=true
           cache-from: type=gha
           cache-to: type=gha,mode=max
   release:
