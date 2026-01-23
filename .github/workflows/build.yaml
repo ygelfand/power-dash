@@ -87,8 +87,12 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(echo "${{ steps.meta.outputs.tags }}" | xargs -I {} echo "-t {}") \
-            $(printf 'ygelfand/power-dash@sha256:%s ' *)
+          tags=$(echo "${{ steps.meta.outputs.tags }}" | xargs -I {} echo "-t {}")
+          sources=""
+          for digest in *; do
+            sources="${sources} ygelfand/power-dash@${digest//--/:}"
+          done
+          docker buildx imagetools create $tags $sources
       - name: Inspect image
         run: |
           docker buildx imagetools inspect ygelfand/power-dash:${{ steps.meta.outputs.version }}
