@@ -38,6 +38,8 @@ jobs:
         with:
           context: .
           platforms: ${{ matrix.platform }}
+          build-args: |
+            BUILD_VERSION=${{ steps.meta.outputs.version }}
           labels: ${{ steps.meta.outputs.labels }}
           outputs: type=image,name=ygelfand/power-dash,push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha

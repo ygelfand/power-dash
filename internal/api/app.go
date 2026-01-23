@@ -32,6 +32,7 @@ type Api struct {
 	importStatus     *ImportStatus
 	labelManager     *config.LabelManager
 	promqlEngine     *promql.Engine
+	version          string
 }
 
 type ImportStatus struct {
@@ -43,7 +44,7 @@ type ImportStatus struct {
 	Percentage   float64 `json:"percentage"`
 }
 
-func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager, opts *config.ProxyOptions, z *zap.Logger, lm *config.LabelManager) *Api {
+func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager, opts *config.ProxyOptions, z *zap.Logger, lm *config.LabelManager, version string) *Api {
 	if z == nil {
 		z = zap.NewNop()
 	}
@@ -65,6 +66,7 @@ func NewApi(p *powerwall.PowerwallGateway, s *store.Store, cm *collector.Manager
 		importStatus:     &ImportStatus{},
 		labelManager:     lm,
 		promqlEngine:     engine,
+		version:          version,
 	}
 }
 

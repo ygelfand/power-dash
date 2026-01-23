@@ -5,6 +5,7 @@ import { useConfig } from "../contexts/ConfigContext";
 import classes from "./Status.module.scss";
 
 interface StatusData {
+  version?: string;
   system: {
     version: string;
     git_hash: string;
@@ -115,6 +116,7 @@ export default function Status() {
             <Title order={1}>{site?.site_name || "System"} Status</Title>
             <Text c="dimmed" size="sm">Hardware inventory and real-time controller state</Text>
             <Group gap="xs" mt={4}>
+                <Badge variant="outline" color="blue" radius="xs" size="sm">PD: {data.version || "N/A"}</Badge>
                 <Badge variant="outline" color="gray" radius="xs" size="sm">FW: {system?.version || "N/A"}</Badge>
                 <Badge variant="outline" color="gray" radius="xs" size="sm">DIN: {system?.din || "N/A"}</Badge>
                 {config?.vin && <Badge variant="outline" color="gray" radius="xs" size="sm">VIN: {config.vin}</Badge>}

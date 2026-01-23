@@ -94,7 +94,7 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 
 			o.ConfigPath = viper.ConfigFileUsed()
 			lm := config.NewLabelManager(o.ConfigPath, o.LabelConfigPath, logger)
-			app := api.NewApi(pwr, st, cm, o, logger, lm)
+			app := api.NewApi(pwr, st, cm, o, logger, lm, GetPowerDashVersion())
 
 			srv := &http.Server{
 				Addr:    o.ListenOn,

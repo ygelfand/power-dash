@@ -10,7 +10,7 @@ import (
 
 var PowerDashVersion string
 
-func getPowerDashVersion() string {
+func GetPowerDashVersion() string {
 	noVersionAvailable := "No version info available for this build, run 'power-dash help version' for additional info"
 
 	if len(PowerDashVersion) != 0 {
@@ -52,7 +52,7 @@ The version command provides information about the application's version.
 
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
-		version := getPowerDashVersion()
+		version := GetPowerDashVersion()
 		fmt.Printf("Power Dash version: %v\n", version)
 	},
 }

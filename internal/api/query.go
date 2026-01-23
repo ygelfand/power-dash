@@ -240,6 +240,7 @@ func (api *Api) getStatus(c *gin.Context) {
 		"live":       nil,
 		"system":     nil,
 		"site":       nil,
+		"version":    api.version,
 	}
 	if statusRaw != nil {
 		var sys any
@@ -334,6 +335,7 @@ func (api *Api) getSettings(c *gin.Context) {
 		"path":      configPath,
 		"writable":  writable,
 		"overrides": overrides,
+		"version":   api.version,
 	})
 }
 
@@ -519,6 +521,10 @@ func (api *Api) downloadTechBundle(c *gin.Context) {
 	statsJson, _ := json.MarshalIndent(stats, "", "  ")
 	sf, _ := zw.Create("tsdb_stats.json")
 	_, _ = sf.Write(statsJson)
+
+	// 4. Version
+	vFile, _ := zw.Create("version.txt")
+	_, _ = vFile.Write([]byte(api.version))
 
 	_ = zw.Close()
 
