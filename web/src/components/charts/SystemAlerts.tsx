@@ -8,7 +8,7 @@ import {
   useSyncedTimeframe,
   useDataRefresh,
 } from "../../utils";
-import type { ChartComponentProps } from "../../data";
+import type { ChartComponentProps, DataPoint } from "../../data";
 import {
   Center,
   Text,
@@ -107,48 +107,50 @@ export function SystemAlerts({
     { intervals: { start: number; end: number }[] }
   > = {};
 
-  Object.keys(rawResults).forEach((name) => {
-    // Clean name logic: Use the 'name=' part of the label string or fallback to full key
-    const match = name.match(/Alert\s+([^,\]\s]+)/);
-    const cleanName = match ? match[1] : name;
+  if (rawResults) {
+    Object.keys(rawResults).forEach((name) => {
+      // Clean name logic: Use the 'name=' part of the label string or fallback to full key
+      const match = name.match(/Alert\s+([^,\]\s]+)/);
+      const cleanName = match ? match[1] : name;
 
-    if (!groupedAlerts[cleanName]) {
-      groupedAlerts[cleanName] = { intervals: [] };
-    }
+      if (!groupedAlerts[cleanName]) {
+        groupedAlerts[cleanName] = { intervals: [] };
+      }
 
-    // Process points into intervals for this specific raw series
-    const points = rawResults[name];
-    let currentStart: number | null = null;
-    let lastTs = 0;
+      // Process points into intervals for this specific raw series
+      const points = rawResults[name];
+      let currentStart: number | null = null;
+      let lastTs = 0;
 
-    points.forEach((p) => {
-      if (currentStart !== null && p.Timestamp - lastTs > 300) {
+      points.forEach((p: DataPoint) => {
+        if (currentStart !== null && p.Timestamp - lastTs > 300) {
+          groupedAlerts[cleanName].intervals.push({
+            start: currentStart,
+            end: lastTs,
+          });
+          currentStart = null;
+        }
+        if (p.Value > 0) {
+          if (currentStart === null) currentStart = p.Timestamp;
+          lastTs = p.Timestamp;
+        } else {
+          if (currentStart !== null) {
+            groupedAlerts[cleanName].intervals.push({
+              start: currentStart,
+              end: p.Timestamp,
+            });
+            currentStart = null;
+          }
+        }
+      });
+      if (currentStart !== null) {
         groupedAlerts[cleanName].intervals.push({
           start: currentStart,
           end: lastTs,
         });
-        currentStart = null;
-      }
-      if (p.Value > 0) {
-        if (currentStart === null) currentStart = p.Timestamp;
-        lastTs = p.Timestamp;
-      } else {
-        if (currentStart !== null) {
-          groupedAlerts[cleanName].intervals.push({
-            start: currentStart,
-            end: p.Timestamp,
-          });
-          currentStart = null;
-        }
       }
     });
-    if (currentStart !== null) {
-      groupedAlerts[cleanName].intervals.push({
-        start: currentStart,
-        end: lastTs,
-      });
-    }
-  });
+  }
 
   // 2. Flatten and merge intervals for each alert type
   const rows = Object.keys(groupedAlerts)
