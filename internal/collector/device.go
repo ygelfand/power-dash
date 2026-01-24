@@ -81,10 +81,10 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 
 	// Environmental (Temps and Fans)
 	var env []store.EnvironmentalReading
-	validMsaIdx := 0
+	validTempIdx := 0
 	for _, msa := range ctrl.Components.Msa {
+		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: validTempIdx}
 		found := false
-		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: validMsaIdx}
 		for _, signal := range msa.Signals {
 			if signal.Value != nil && signal.Name == "THC_AmbientTemp" {
 				r.AmbientTemp = utils.ToPtr(float64(*signal.Value))
@@ -93,23 +93,31 @@ func (c *DeviceCollector) Collect(ctx context.Context, s *store.Store) (string, 
 		}
 		if found {
 			env = append(env, r)
-			validMsaIdx++
+			validTempIdx++
 		}
 	}
 
-	validPvacIdx := 0
-	for _, pvac := range ctrl.EsCan.Bus.Pvac {
-		if pvac.PVACLogging.IsMIA {
-			continue
+	validFanIdx := 0
+	for _, msa := range ctrl.Components.Msa {
+		r := store.EnvironmentalReading{Timestamp: now, MsaIndex: validFanIdx}
+		found := false
+		for _, signal := range msa.Signals {
+			if signal.Value == nil {
+				continue
+			}
+			switch signal.Name {
+			case "PVAC_Fan_Speed_Actual_RPM":
+				r.FanSpeedActual = utils.ToPtr(float64(*signal.Value))
+				found = true
+			case "PVAC_Fan_Speed_Target_RPM":
+				r.FanSpeedTarget = utils.ToPtr(float64(*signal.Value))
+				found = true
+			}
 		}
-		r := store.EnvironmentalReading{
-			Timestamp:      now,
-			MsaIndex:       validPvacIdx,
-			FanSpeedActual: utils.ToPtr(float64(pvac.PVACLogging.PVAC_Fan_Speed_Actual_RPM)),
-			FanSpeedTarget: utils.ToPtr(float64(pvac.PVACLogging.PVAC_Fan_Speed_Target_RPM)),
+		if found {
+			env = append(env, r)
+			validFanIdx++
 		}
-		env = append(env, r)
-		validPvacIdx++
 	}
 	_ = s.InsertEnvironmentalReadings(env)
 
