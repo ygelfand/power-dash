@@ -28,8 +28,7 @@ export function SolarStringPower({ panel, height, timeframe, onClick, showLegend
         undefined, 
         undefined, 
         undefined, 
-        zoomRange,
-        false // No raw results needed
+        zoomRange
     );
 
     const series = seriesKeys.sort().map((name) => {

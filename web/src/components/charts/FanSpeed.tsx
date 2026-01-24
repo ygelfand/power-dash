@@ -46,7 +46,7 @@ export function FanSpeed({
       all: true,
     },
   ];
-  const { chartData, rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
@@ -55,7 +55,7 @@ export function FanSpeed({
     zoomRange,
   );
 
-  const series = Object.keys(rawResults)
+  const series = seriesKeys
     .sort()
     .map((name) => {
       const isTarget = name.startsWith("Target");

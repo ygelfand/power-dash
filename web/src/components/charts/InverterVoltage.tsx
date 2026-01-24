@@ -41,8 +41,7 @@ export function InverterVoltage({
     undefined,
     undefined,
     undefined,
-    zoomRange,
-    false
+    zoomRange
   );
 
   const finalSeries: any[] = [];

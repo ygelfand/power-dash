@@ -38,7 +38,7 @@ export function GridVoltage({
     { name: "voltage_volts", label: "MSA", tags: { site: "msa" }, all: true },
     { name: "inverter_voltage_volts", label: "Inverter", all: true },
   ];
-  const { chartData, rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
@@ -49,7 +49,7 @@ export function GridVoltage({
 
   const activeSeries: any[] = [];
   if (chartData) {
-    Object.keys(rawResults)
+    seriesKeys
       .sort()
       .forEach((key) => {
         activeSeries.push({

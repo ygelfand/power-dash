@@ -179,7 +179,7 @@ export function CurrentPowerFlow({
     }
   };
 
-  useDataRefresh(fetchData, 5000); // Faster refresh for live feel? Keep 30s for now or 5s
+  useDataRefresh(fetchData, 15000);
 
   const formatW = (val: number, signed = false) => {
     const abs = Math.abs(val);

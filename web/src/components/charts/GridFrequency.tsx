@@ -41,8 +41,7 @@ export function GridFrequency({
     undefined,
     undefined,
     undefined,
-    zoomRange,
-    false
+    zoomRange
   );
 
   const activeSeries: any[] = [];

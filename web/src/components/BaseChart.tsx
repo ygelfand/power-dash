@@ -441,11 +441,17 @@ export function BaseChart({
     fixedHeight,
     series,
     spanGaps,
-    now,
     uniqueUnits,
     isZoomed,
     JSON.stringify(zoomRange),
   ]);
+
+  // Redraw when 'now' updates to move the sliding window without re-creating options
+  useEffect(() => {
+    if (uplot && !isZoomedRef.current && !zoomRangeRef.current) {
+      uplot.redraw();
+    }
+  }, [now, uplot]);
 
   const hasData =
     externalData && externalData.length > 0 && externalData[0].length > 0;

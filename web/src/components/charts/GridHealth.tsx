@@ -26,7 +26,7 @@ export function GridHealth({ panel, height, timeframe, onClick, showLegend, onTi
         { name: 'frequency_hertz', label: 'Freq', tags: { site: 'site' } },
         { name: 'voltage_volts', label: 'Grid', tags: { site: 'site' }, all: true },
     ];
-    const { chartData, rawResults, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
+    const { chartData, seriesKeys, loading } = useChartData(metrics, localTf, undefined, undefined, undefined, zoomRange);
 
     const activeSeries: any[] = [];
     if (chartData) {
@@ -36,7 +36,7 @@ export function GridHealth({ panel, height, timeframe, onClick, showLegend, onTi
         activeSeries.push({ name: 'Frequency', color: getDynamicColor('Freq'), unit: 'Hz' });
         
         // Dynamic Grid Voltages
-        Object.keys(rawResults).filter(k => k.startsWith('Grid')).sort().forEach(key => {
+        seriesKeys.filter(k => k.startsWith('Grid')).sort().forEach(key => {
             activeSeries.push({ name: key, color: getDynamicColor(key), unit: 'V' });
         });
     }

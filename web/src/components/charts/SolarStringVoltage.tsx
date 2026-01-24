@@ -28,8 +28,7 @@ export function SolarStringVoltage({ panel, height, timeframe, onClick, showLege
         undefined, 
         undefined, 
         undefined, 
-        zoomRange,
-        false
+        zoomRange
     );
     
     const series = seriesKeys.sort().map((name) => {

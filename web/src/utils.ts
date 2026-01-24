@@ -109,6 +109,82 @@ export function useDataRefresh(
   }, [intervalMs, isPaused]);
 }
 
+export function useRawMetrics(
+  metrics: MetricQuery[],
+  timeframe: string,
+  explicitIntervalMs?: number,
+  step?: number,
+  func?: string,
+  zoomRange?: [number, number] | null,
+) {
+  const [rawResults, setRawResults] = useState<
+    Record<string, DataPoint[]> | undefined
+  >();
+  const [loading, setLoading] = useState(true);
+
+  const metricsStr = JSON.stringify(metrics);
+  const zoomRangeStr = JSON.stringify(zoomRange);
+
+  let intervalMs = 30000;
+  if (explicitIntervalMs !== undefined) {
+    intervalMs = explicitIntervalMs;
+  } else {
+    if (timeframe.endsWith("m") || timeframe === "30d") {
+      intervalMs = 3600000;
+    } else if (timeframe.endsWith("y")) {
+      intervalMs = 86400000;
+    }
+  }
+
+  const fetchData = async () => {
+    if (!rawResults) setLoading(true);
+    let start: number, end: number;
+
+    if (zoomRange) {
+      [start, end] = zoomRange;
+      start = Math.floor(start);
+      end = Math.ceil(end);
+    } else {
+      const duration = parseTimeframe(timeframe);
+      end = Math.floor(Date.now() / 1000);
+      start = end - duration;
+    }
+
+    const duration = end - start;
+    const queryStep =
+      step !== undefined
+        ? step
+        : duration > 86400 * 7
+          ? Math.max(1, Math.floor(duration / 1000))
+          : 0;
+
+    try {
+      const results = await batchQueryMetrics(
+        metrics,
+        start,
+        end,
+        queryStep,
+        func,
+      );
+      setRawResults(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useDataRefresh(fetchData, intervalMs, [
+    timeframe,
+    metricsStr,
+    step,
+    func,
+    zoomRangeStr,
+  ]);
+
+  return { rawResults, loading };
+}
+
 export function useChartData(
   metrics: MetricQuery[],
   timeframe: string,
@@ -116,13 +192,11 @@ export function useChartData(
   step?: number,
   func?: string,
   zoomRange?: [number, number] | null,
-  needRawResults: boolean = true,
 ) {
   const [chartData, setChartData] = useState<
     [number[], ...number[][]] | undefined
   >();
   const [loading, setLoading] = useState(true);
-  const [rawResults, setRawResults] = useState<Record<string, DataPoint[]>>({});
   const [seriesKeys, setSeriesKeys] = useState<string[]>([]);
 
   const metricsStr = JSON.stringify(metrics);
@@ -178,11 +252,6 @@ export function useChartData(
         queryStep,
         func,
       );
-      if (needRawResults) {
-        setRawResults(results);
-      } else {
-        setRawResults({});
-      }
 
       const sortedTs = alignTimestamps(results);
       const data: (number[] | (number | null)[])[] = [sortedTs];
@@ -225,8 +294,7 @@ export function useChartData(
     step,
     func,
     zoomRangeStr,
-    needRawResults,
   ]);
 
-  return { chartData, loading, rawResults, seriesKeys };
+  return { chartData, loading, seriesKeys };
 }

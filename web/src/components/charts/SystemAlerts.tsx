@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Panel } from "../Panel";
 import {
-  useChartData,
+  useRawMetrics,
   useDynamicColor,
   parseTimeframe,
   getContrastingTextColor,
@@ -48,7 +48,7 @@ export function SystemAlerts({
 
   const getDynamicColor = useDynamicColor();
   const metrics = [{ name: "active_alert", label: "Alert", all: true }];
-  const { rawResults, loading } = useChartData(metrics, localTf);
+  const { rawResults, loading } = useRawMetrics(metrics, localTf);
 
   // eslint-disable-next-line react-hooks/purity
   const [now, setNow] = useState(Math.floor(Date.now() / 1000));

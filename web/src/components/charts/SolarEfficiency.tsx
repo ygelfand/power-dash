@@ -26,7 +26,7 @@ export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend,
         { name: 'solar_voltage_volts', label: 'Voltage', all: true },
         { name: 'solar_current_amps', label: 'Current', all: true },
     ];
-    const { chartData, rawResults, loading } = useChartData(
+    const { chartData, seriesKeys, loading } = useChartData(
         metrics, 
         localTf, 
         undefined, 
@@ -37,7 +37,7 @@ export function SolarEfficiency({ panel, height, timeframe, onClick, showLegend,
 
     if (loading) return <Center h={height}><Loader size="sm" /></Center>;
 
-    const series = Object.keys(rawResults).sort().map((name) => {
+    const series = seriesKeys.sort().map((name) => {
         const isVoltage = name.includes('Voltage');
         return {
             name: name,

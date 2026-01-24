@@ -119,7 +119,7 @@ export function DailySummary() {
         metrics,
         start,
         end,
-        3600, // Large step since we just want the integral
+        3600,
         "integral",
       );
 

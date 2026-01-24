@@ -51,11 +51,9 @@ export function BatteryLevel({
     localTf,
     undefined,
     undefined,
-    undefined,
-    zoomRange,
-    false
-  );
-  const series: any[] = [];
+        undefined, 
+        zoomRange
+      );  const series: any[] = [];
   const remainingKeys = seriesKeys
     .filter((k) => k.includes("Remaining"))
     .sort();

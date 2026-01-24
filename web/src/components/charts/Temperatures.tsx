@@ -32,7 +32,7 @@ export function Temperatures({
 
   const getDynamicColor = useDynamicColor();
   const metrics = [{ name: "temperature_celsius", label: "Temp", all: true }];
-  const { chartData, rawResults, loading } = useChartData(
+  const { chartData, seriesKeys, loading } = useChartData(
     metrics,
     localTf,
     undefined,
@@ -41,7 +41,7 @@ export function Temperatures({
     zoomRange,
   );
 
-  const series = Object.keys(rawResults)
+  const series = seriesKeys
     .sort()
     .map((name) => {
       return {
