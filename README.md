@@ -47,7 +47,33 @@ docker run -d \
   ygelfand/power-dash:latest
 ```
 
-#### Method 2: Standalone Binary
+#### Method 2: Docker Compose
+
+Create a `docker-compose.yml` file:
+
+```yaml
+services:
+  power-dash:
+    image: ygelfand/power-dash:latest
+    container_name: power-dash
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+    environment:
+      - POWER_DASH_PASSWORD=YOUR_GATEWAY_PASSWORD
+      - POWER_DASH_ENDPOINT=https://192.168.91.1/
+      - TZ=America/Los_Angeles
+```
+
+Run with:
+
+```bash
+docker-compose up -d
+```
+
+#### Method 3: Standalone Binary
 
 Download the appropriate binary for your operating system from the [Releases](https://github.com/ygelfand/power-dash/releases) page.
 
