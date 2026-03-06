@@ -232,7 +232,7 @@ export function CurrentPowerFlow({
   const trunkL_X = center - trunkOffset;
   const trunkR_X = center + trunkOffset;
 
-  const MIN_POWER = 10;
+  const MIN_POWER = 100;
   const MIN_SPAWN_RATE = 0.2;
   const MIN_SPEED = 20;
 
