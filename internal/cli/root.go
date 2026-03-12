@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -90,6 +91,7 @@ func initConfig() {
 	}
 
 	viper.SetEnvPrefix("POWER_DASH")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv()
 	viper.ReadInConfig()
 }
