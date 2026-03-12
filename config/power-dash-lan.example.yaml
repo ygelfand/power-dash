@@ -1,0 +1,34 @@
+endpoint: https://192.168.1.131/
+password: REPLACEME
+connection-mode: lan
+key-path: tedapi_rsa_private.pem
+din: 1234567-00-A--AA0000000000AA
+debug: false
+collection-interval: 30
+auto-refresh: true
+log-level: info
+default-theme: auto # auto, light, dark
+listen: :8080
+storage:
+  path: /data
+  retention: 0s
+  partition: 168h
+dashboards:
+  - name: Main Overview
+    timeframe: 24h
+    panels:
+      - name: current-power-flow
+      - name: power-flow
+      - name: daily-summary
+      - name: monthly-analytics
+      - name: battery-level
+      - name: string-voltage
+      - name: string-current
+      - name: string-power
+      - name: inverter-power
+      - name: grid-voltage
+      - name: grid-frequency
+      - name: fan-speed
+      - name: temperatures
+      - name: system-alerts
+      - name: yearly-analytics
