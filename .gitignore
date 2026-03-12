@@ -3,3 +3,5 @@ tmp/
 .DS_Store
 internal/ui/dist/
 data/
+fleet_tokens.json
+*.pem

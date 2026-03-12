@@ -55,7 +55,7 @@ Credentials via flags or env vars: TESLA_CLIENT_ID, TESLA_CLIENT_SECRET`,
 			if existing != nil && !force {
 				if !existing.IsExpired() && !refresh {
 					pterm.Info.Printfln("Tokens valid (obtained %s, expires in ~%s).", existing.ObtainedAt, tokenTTL(existing))
-					pterm.Info.Println("Run 'power-dash connect register' to register your RSA key.")
+					pterm.Info.Println("Run 'power-dash connect keys add' to register your RSA key.")
 					return nil
 				}
 
@@ -228,7 +228,7 @@ Credentials via flags or env vars: TESLA_CLIENT_ID, TESLA_CLIENT_SECRET`,
 			}
 			regSpinner.Success("Partner registered")
 			pterm.Println()
-			pterm.Info.Println("Run 'power-dash connect register' to register your RSA key.")
+			pterm.Info.Println("Run 'power-dash connect keys add' to register your RSA key.")
 			return nil
 		},
 	}

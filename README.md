@@ -27,139 +27,170 @@
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- **Gateway Access**: Your computer must have access to `192.168.91.1`. This is typically achieved by connecting directly to the Powerwall Gateway's built-in WiFi network or by routing traffic through a device that is.
-- **Installer Password**: You will need your Powerwall/Gateway password. This is usually found on the **QR sticker** located inside your gateway enclosure or on its side.
-
 ### Self-Hosting Options
 
 #### Method 1: Docker (Recommended)
-
-The easiest way to run Power Dash is using the official Docker image.
 
 ```bash
 docker run -d \
   --name power-dash \
   -p 8080:8080 \
-  -v ./data:/app/data \
+  -v ./data:/data \
   -e POWER_DASH_PASSWORD="YOUR_GATEWAY_PASSWORD" \
   ygelfand/power-dash:latest
 ```
 
 #### Method 2: Docker Compose
 
-Create a `docker-compose.yml` file:
-
-```yaml
-services:
-  power-dash:
-    image: ygelfand/power-dash:latest
-    container_name: power-dash
-    restart: unless-stopped
-    ports:
-      - "8080:8080"
-    volumes:
-      - ./data:/data
-    environment:
-      - POWER_DASH_PASSWORD=YOUR_GATEWAY_PASSWORD
-      - POWER_DASH_ENDPOINT=https://192.168.91.1/
-      - TZ=America/Los_Angeles
-```
-
-Run with:
+A `docker-compose.yml` is included in the repository:
 
 ```bash
+POWER_DASH_PASSWORD=YOUR_GATEWAY_PASSWORD \
+POWER_DASH_ENDPOINT=https://192.168.91.1/ \
 docker-compose up -d
 ```
+
+Or set the values directly in `docker-compose.yml` and run `docker-compose up -d`.
 
 #### Method 3: Standalone Binary
 
 Download the appropriate binary for your operating system from the [Releases](https://github.com/ygelfand/power-dash/releases) page.
 
-1. **Make Executable** (Linux/macOS):
-
-   ```bash
-   chmod +x power-dash
-   ```
-
-2. **Run**:
-   ```bash
-   ./power-dash run --password "YOUR_GATEWAY_PASSWORD"
-   ```
+```bash
+chmod +x power-dash
+./power-dash run --password "YOUR_GATEWAY_PASSWORD"
+```
 
 ### Configuration
 
-Power Dash can be configured via command-line flags, environment variables, or a configuration file (`power-dash.yaml`).
+Power Dash can be configured via command-line flags, environment variables (`POWER_DASH_*`), or a `power-dash.yaml` file (searched in `./`, `~/.`, and `/etc/power-dash/`).
 
-| Option   | Flag         | Environment Variable  | Description                                    |
-| -------- | ------------ | --------------------- | ---------------------------------------------- |
-| Endpoint | `--endpoint` | `POWER_DASH_ENDPOINT` | Gateway URL (default: `https://192.168.91.1/`) |
-| Password | `--password` | `POWER_DASH_PASSWORD` | Installer password from QR sticker             |
-| Port     | `--listen`   | `POWER_DASH_LISTEN`   | Address to listen on (default: `:8080`)        |
+| Option              | Flag                    | Env Variable                     | Default                  |
+| ------------------- | ----------------------- | -------------------------------- | ------------------------ |
+| Endpoint            | `--endpoint`            | `POWER_DASH_ENDPOINT`            | `https://192.168.91.1/`  |
+| Password            | `--password`            | `POWER_DASH_PASSWORD`            | _(required)_             |
+| Listen address      | `--listen`              | `POWER_DASH_LISTEN`              | `:8080`                  |
+| Connection mode     | `--connection-mode`     | `POWER_DASH_CONNECTION_MODE`     | `wifi`                   |
+| RSA key path        | `--key-path`            | `POWER_DASH_KEY_PATH`            | `tedapi_rsa_private.pem` |
+| Gateway DIN         | `--din`                 | `POWER_DASH_DIN`                 | _(auto-detected)_        |
+| Collection interval | `--collection-interval` | `POWER_DASH_COLLECTION_INTERVAL` | `30` (seconds)           |
+| Log level           | `--log-level`           | `POWER_DASH_LOG_LEVEL`           | `info`                   |
+| Storage path        | `--storage-path`        | `POWER_DASH_STORAGE_PATH`        | `/data`                  |
+| Storage retention   | `--storage-retention`   | `POWER_DASH_STORAGE_RETENTION`   | `0s` (infinite)          |
 
-**Example `power-dash.yaml`:**
+---
 
-```yaml
-endpoint: "https://192.168.91.1/"
-password: "YOUR_INSTALLER_PASSWORD"
-collection-interval: 5
-log-level: "info"
-storage:
-  path: "./data"
-  retention: "720h" # 30 days
-```
+## 🔌 Connection Modes
 
-### Running Locally (Development)
+Power Dash supports two ways to connect to your Powerwall gateway.
 
-1.  **Clone the repository:**
+### WiFi Mode (Default)
 
-    ```bash
-    git clone https://github.com/ygelfand/power-dash.git
-    cd power-dash
-    ```
+Connect over your local network using the gateway's IP and installer password. This is the simplest setup and works for most users, but requires a device with 2 network connections:
 
-2.  **Build and Run:**
-    You can start the backend and frontend in development mode:
-
-    ```bash
-    make run-dev
-    ```
-
-    - Backend: `http://localhost:8080`
-    - Frontend: `http://localhost:8000`
-
-3.  **Build Binary:**
-    To produce a standalone binary with the UI embedded:
-    ```bash
-    make all
-    ./bin/power-dash run --help
-    ```
-
-### Configuration
-
-Power Dash can be configured via flags, environment variables, or a config file (`power-dash.yaml`).
-
-**Example `power-dash.yaml`:**
+- WiFi connected to the powerwall/gateway's internal wifi
+- Wifi/LAN connected to your local network
 
 ```yaml
+# power-dash.yaml
 endpoint: "https://192.168.91.1/"
 password: "YOUR_INSTALLER_PASSWORD"
-collection-interval: 1
-log-level: "info" # debug, info, warn, error
-storage:
-  path: "./data"
-  retention: "720h" # 30 days
+connection-mode: wifi
 ```
 
-### Importing Data
+The installer password is printed on the **QR sticker** inside your gateway enclosure.
 
-Migrate from InfluxDB using the **Settings** page in the web UI or via the built-in CLI command:
+### LAN Mode
+
+LAN mode uses RSA-signed requests directly to the gateway's TEDAPI endpoint.
+
+This requires a **one-time setup** using a Tesla developer account.
+
+#### Prerequisites
+
+- A [Tesla Developer](https://developer.tesla.com/) app with `energy_device_data` and `energy_cmds` scopes
+
+#### Step 1: Download the binary
+
+Download the appropriate binary for your OS from the [Releases](https://github.com/ygelfand/power-dash/releases) page and make it executable:
 
 ```bash
-# Import the last year of data via CLI
-./power-dash import --influx-host "http://192.168.1.50:8086" --since "1y"
+chmod +x power-dash
 ```
+
+#### Step 2: OAuth Login
+
+Run the interactive auth flow. This opens a browser for Tesla OAuth, starts a localtunnel for the callback, and registers your app with the Fleet API.
+
+```bash
+power-dash connect auth \
+  --client-id YOUR_TESLA_CLIENT_ID \
+  --client-secret YOUR_TESLA_CLIENT_SECRET
+```
+
+Tokens are saved to `fleet_tokens.json`.
+
+#### Step 3: Register your RSA Key
+
+This generates an RSA-4096 key pair (if one doesn't exist), registers it with your Powerwall via the Fleet API, and walks you through physical confirmation via a breaker toggle.
+
+```bash
+power-dash connect keys add
+```
+
+At the end of the command, you'll see a config snippet like:
+
+```
+┌─ Add to your config ──────────────────┐
+│ connection-mode: lan                  │
+│ key-path: tedapi_rsa_private.pem      │
+│ din: 1234567-00-A--AA0000000000AA     │
+└───────────────────────────────────────┘
+```
+
+#### Step 4: Update your config
+
+Copy [`config/power-dash-lan.example.yaml`](config/power-dash-lan.example.yaml) to `power-dash.yaml` and fill in your values:
+
+```yaml
+endpoint: https://192.168.91.1/
+password: YOUR_INSTALLER_PASSWORD
+connection-mode: lan
+key-path: tedapi_rsa_private.pem
+din: 1234567-00-A--AA0000000000AA # from 'keys add' output
+```
+
+#### Key Management
+
+```bash
+# List registered keys and their verification state
+power-dash connect keys list
+
+# Remove a key by its base64-encoded public key
+power-dash connect keys remove <PUBLIC_KEY>
+```
+
+---
+
+## 🧑‍💻 Development
+
+```bash
+git clone https://github.com/ygelfand/power-dash.git
+cd power-dash
+
+# Start backend + frontend in dev mode
+make run-dev
+# Backend:  http://localhost:8080
+# Frontend: http://localhost:8000
+
+# Build standalone binary with embedded UI
+make all
+./bin/power-dash run --help
+```
+
+## 📥 Importing Data
+
+Migrate from InfluxDB using the **Settings** page in the web UI.
 
 ## 📜 License
 
