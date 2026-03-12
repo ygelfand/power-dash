@@ -2,7 +2,7 @@ SHELL := /bin/sh
 VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || \
             echo v0)
 
-.PHONY: help all fmt vet test build ui run-dev run-test web-dev
+.PHONY: help all fmt vet test build ui run-dev run-test web-dev build-proto
 
 help: ## Display this help screen
 	@echo "Usage: make [target]"
@@ -66,3 +66,6 @@ web-build: ## Build the frontend
 	cd web && npm install && npm run build
 
 web-check: web-lint web-build ## Run frontend lint and build
+
+build-proto: ## Build the protobuf files
+	protoc --go_out=. api/proto/*.proto

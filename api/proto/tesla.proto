@@ -222,8 +222,19 @@ message EnergySiteNetMessages {
   bytes placeholder = 1;
 }
 
+message AuthorizationAPIRemoveAuthorizedClientRequest {
+  bytes public_key = 1;
+}
+
 message AuthorizationMessages {
-  bytes placeholder = 1;
+  oneof message {
+    bytes add_authorized_client_request    = 1;
+    bytes add_authorized_client_response   = 2;
+    AuthorizationAPIRemoveAuthorizedClientRequest remove_authorized_client_request = 3;
+    bytes remove_authorized_client_response = 4;
+    bytes list_authorized_clients_request  = 5;
+    bytes list_authorized_clients_response = 6;
+  }
 }
 
 message GraphQLMessages {

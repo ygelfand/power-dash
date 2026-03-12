@@ -17,39 +17,30 @@ func ToPtrIfNonZero(v float64) *float64 {
 }
 
 func NewLogger(level string) (*zap.Logger, error) {
-
 	if level == "" {
-
 		level = "info"
-
 	}
-
 	zapLevel, err := zapcore.ParseLevel(level)
-
 	if err != nil {
-
 		return nil, err
-
 	}
-
 	var config zap.Config
-
 	if zapLevel == zap.DebugLevel {
-
 		config = zap.NewDevelopmentConfig()
-
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-
 	} else {
-
 		config = zap.NewProductionConfig()
-
 	}
-
 	config.Level = zap.NewAtomicLevelAt(zapLevel)
-
 	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-
 	return config.Build()
+}
 
+func NewAtomicLogger() (*zap.Logger, zap.AtomicLevel) {
+	atom := zap.NewAtomicLevelAt(zap.InfoLevel)
+	config := zap.NewProductionConfig()
+	config.Level = atom
+	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
+	logger, _ := config.Build()
+	return logger, atom
 }

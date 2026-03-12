@@ -16,7 +16,7 @@ func NewDebugConfigCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra
 		Short: "pull config",
 		Long:  `Pulls json config from firewall.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			pwr := powerwall.NewPowerwallGateway(opts.Endpoint, opts.Password, logger)
+			pwr := powerwall.NewPowerwallGateway(opts, logger)
 			if pwr == nil {
 				return
 			}
@@ -27,7 +27,7 @@ func NewDebugConfigCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra
 				if err != nil {
 					logger.Error("JSON parse error", zap.Error(err))
 				}
-				cmd.Println(string(prettyJSON.Bytes()))
+				cmd.Println(prettyJSON.String())
 			}
 		},
 	}

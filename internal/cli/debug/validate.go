@@ -15,10 +15,10 @@ func NewDebugValidateCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cob
 	validateCmd := &cobra.Command{
 		Use:       "validate",
 		Short:     "run all saved queries",
-		Long:      `Runs aall available queries for debug.`,
+		Long:      `Runs all available queries for debug.`,
 		ValidArgs: queries.QueryList(),
 		Run: func(cmd *cobra.Command, args []string) {
-			pwr := powerwall.NewPowerwallGateway(opts.Endpoint, opts.Password, logger)
+			pwr := powerwall.NewPowerwallGateway(opts, logger)
 			if pwr == nil {
 				return
 			}
@@ -34,7 +34,7 @@ func NewDebugValidateCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cob
 				if err != nil {
 					logger.Error("JSON parse error", zap.Error(err))
 				}
-				cmd.Println(string(prettyJSON.Bytes()))
+				cmd.Println(prettyJSON.String())
 			}
 		},
 	}

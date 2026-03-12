@@ -2,10 +2,20 @@ package config
 
 import "time"
 
+type ConnectionMode string
+
+const (
+	ConnectionModeWifi ConnectionMode = "wifi"
+	ConnectionModeLan  ConnectionMode = "lan"
+)
+
 type PowerwallOptions struct {
-	Endpoint  string `mapstructure:"endpoint" yaml:"endpoint" json:"endpoint"`
-	Password  string `mapstructure:"password" yaml:"password" json:"password"`
-	DebugMode bool   `mapstructure:"debug" yaml:"debug,omitempty" json:"debug,omitempty"`
+	Endpoint       string         `mapstructure:"endpoint" yaml:"endpoint" json:"endpoint"`
+	Password       string         `mapstructure:"password" yaml:"password" json:"password"`
+	DebugMode      bool           `mapstructure:"debug" yaml:"debug,omitempty" json:"debug,omitempty"`
+	ConnectionMode ConnectionMode `mapstructure:"connection-mode" yaml:"connection-mode,omitempty" json:"connection-mode,omitempty"`
+	KeyPath        string         `mapstructure:"key-path" yaml:"key-path,omitempty" json:"key-path,omitempty"`
+	DIN            string         `mapstructure:"din" yaml:"din,omitempty" json:"din,omitempty"`
 }
 
 type StorageOptions struct {

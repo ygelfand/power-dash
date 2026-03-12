@@ -53,7 +53,7 @@ func newRunCmd(opts *config.PowerwallOptions) *cobra.Command {
 			ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 			defer stop()
 
-			pwr := powerwall.NewPowerwallGateway(o.Endpoint, o.Password, logger)
+			pwr := powerwall.NewPowerwallGateway(&o.PowerwallOptions, logger)
 			if pwr == nil {
 				os.Exit(1)
 			}

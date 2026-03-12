@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"sort"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,62 +18,6 @@ import (
 	"go.uber.org/zap"
 	"gopkg.in/yaml.v3"
 )
-
-func (api *Api) queryMetrics(c *gin.Context) {
-	if api.store == nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "storage not initialized"})
-		return
-	}
-
-	metric := c.Query("metric")
-	if metric == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "metric is required"})
-		return
-	}
-
-	startStr := c.Query("start")
-	endStr := c.Query("end")
-	stepStr := c.Query("step")
-	function := c.Query("function")
-
-	end := time.Now().Unix()
-	start := end - 3600
-
-	if endStr != "" {
-		if val, err := strconv.ParseInt(endStr, 10, 64); err == nil {
-			end = val
-		}
-	}
-	if startStr != "" {
-		if val, err := strconv.ParseInt(startStr, 10, 64); err == nil {
-			start = val
-		}
-	}
-
-	step := int64(0)
-	if stepStr != "" {
-		if val, err := strconv.ParseInt(stepStr, 10, 64); err == nil {
-			step = val
-		}
-	}
-
-	tags := make(map[string]string)
-	for k, v := range c.Request.URL.Query() {
-		if k == "metric" || k == "start" || k == "end" || k == "function" || k == "step" {
-			continue
-		}
-		tags[k] = v[0]
-	}
-
-	points, err := api.store.Select(metric, tags, start, end, step, function)
-	if err != nil {
-		api.logger.Error("Query error", zap.Error(err), zap.String("metric", metric), zap.Any("tags", tags))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, points)
-}
 
 func (api *Api) getDashboards(c *gin.Context) {
 	if api.dashboards == nil {

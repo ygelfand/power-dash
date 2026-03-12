@@ -23,7 +23,7 @@ func NewDebugQueryCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra.
 		ValidArgs: queries.QueryList(),
 		Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
 		Run: func(cmd *cobra.Command, args []string) {
-			pwr := powerwall.NewPowerwallGateway(opts.Endpoint, opts.Password, logger)
+			pwr := powerwall.NewPowerwallGateway(opts, logger)
 			if pwr == nil {
 				return
 			}
@@ -34,7 +34,7 @@ func NewDebugQueryCmd(opts *config.PowerwallOptions, logger *zap.Logger) *cobra.
 				logger.Error("JSON parse error", zap.Error(err), zap.String("response", *debug))
 			}
 
-			cmd.Println(string(prettyJSON.Bytes()))
+			cmd.Println(prettyJSON.String())
 		},
 	}
 	queryCmd.Flags().StringVarP(&params, "params", "m", "", "params")

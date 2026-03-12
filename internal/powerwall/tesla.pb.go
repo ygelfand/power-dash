@@ -2099,16 +2099,68 @@ func (x *EnergySiteNetMessages) GetPlaceholder() []byte {
 	return nil
 }
 
-type AuthorizationMessages struct {
+type AuthorizationAPIRemoveAuthorizedClientRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Placeholder   []byte                 `protobuf:"bytes,1,opt,name=placeholder,proto3" json:"placeholder,omitempty"`
+	PublicKey     []byte                 `protobuf:"bytes,1,opt,name=public_key,json=publicKey,proto3" json:"public_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AuthorizationAPIRemoveAuthorizedClientRequest) Reset() {
+	*x = AuthorizationAPIRemoveAuthorizedClientRequest{}
+	mi := &file_api_proto_tesla_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AuthorizationAPIRemoveAuthorizedClientRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AuthorizationAPIRemoveAuthorizedClientRequest) ProtoMessage() {}
+
+func (x *AuthorizationAPIRemoveAuthorizedClientRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_proto_tesla_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AuthorizationAPIRemoveAuthorizedClientRequest.ProtoReflect.Descriptor instead.
+func (*AuthorizationAPIRemoveAuthorizedClientRequest) Descriptor() ([]byte, []int) {
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *AuthorizationAPIRemoveAuthorizedClientRequest) GetPublicKey() []byte {
+	if x != nil {
+		return x.PublicKey
+	}
+	return nil
+}
+
+type AuthorizationMessages struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Message:
+	//
+	//	*AuthorizationMessages_AddAuthorizedClientRequest
+	//	*AuthorizationMessages_AddAuthorizedClientResponse
+	//	*AuthorizationMessages_RemoveAuthorizedClientRequest
+	//	*AuthorizationMessages_RemoveAuthorizedClientResponse
+	//	*AuthorizationMessages_ListAuthorizedClientsRequest
+	//	*AuthorizationMessages_ListAuthorizedClientsResponse
+	Message       isAuthorizationMessages_Message `protobuf_oneof:"message"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AuthorizationMessages) Reset() {
 	*x = AuthorizationMessages{}
-	mi := &file_api_proto_tesla_proto_msgTypes[24]
+	mi := &file_api_proto_tesla_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2120,7 +2172,7 @@ func (x *AuthorizationMessages) String() string {
 func (*AuthorizationMessages) ProtoMessage() {}
 
 func (x *AuthorizationMessages) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[24]
+	mi := &file_api_proto_tesla_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2133,15 +2185,109 @@ func (x *AuthorizationMessages) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AuthorizationMessages.ProtoReflect.Descriptor instead.
 func (*AuthorizationMessages) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{24}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{25}
 }
 
-func (x *AuthorizationMessages) GetPlaceholder() []byte {
+func (x *AuthorizationMessages) GetMessage() isAuthorizationMessages_Message {
 	if x != nil {
-		return x.Placeholder
+		return x.Message
 	}
 	return nil
 }
+
+func (x *AuthorizationMessages) GetAddAuthorizedClientRequest() []byte {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_AddAuthorizedClientRequest); ok {
+			return x.AddAuthorizedClientRequest
+		}
+	}
+	return nil
+}
+
+func (x *AuthorizationMessages) GetAddAuthorizedClientResponse() []byte {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_AddAuthorizedClientResponse); ok {
+			return x.AddAuthorizedClientResponse
+		}
+	}
+	return nil
+}
+
+func (x *AuthorizationMessages) GetRemoveAuthorizedClientRequest() *AuthorizationAPIRemoveAuthorizedClientRequest {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_RemoveAuthorizedClientRequest); ok {
+			return x.RemoveAuthorizedClientRequest
+		}
+	}
+	return nil
+}
+
+func (x *AuthorizationMessages) GetRemoveAuthorizedClientResponse() []byte {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_RemoveAuthorizedClientResponse); ok {
+			return x.RemoveAuthorizedClientResponse
+		}
+	}
+	return nil
+}
+
+func (x *AuthorizationMessages) GetListAuthorizedClientsRequest() []byte {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_ListAuthorizedClientsRequest); ok {
+			return x.ListAuthorizedClientsRequest
+		}
+	}
+	return nil
+}
+
+func (x *AuthorizationMessages) GetListAuthorizedClientsResponse() []byte {
+	if x != nil {
+		if x, ok := x.Message.(*AuthorizationMessages_ListAuthorizedClientsResponse); ok {
+			return x.ListAuthorizedClientsResponse
+		}
+	}
+	return nil
+}
+
+type isAuthorizationMessages_Message interface {
+	isAuthorizationMessages_Message()
+}
+
+type AuthorizationMessages_AddAuthorizedClientRequest struct {
+	AddAuthorizedClientRequest []byte `protobuf:"bytes,1,opt,name=add_authorized_client_request,json=addAuthorizedClientRequest,proto3,oneof"`
+}
+
+type AuthorizationMessages_AddAuthorizedClientResponse struct {
+	AddAuthorizedClientResponse []byte `protobuf:"bytes,2,opt,name=add_authorized_client_response,json=addAuthorizedClientResponse,proto3,oneof"`
+}
+
+type AuthorizationMessages_RemoveAuthorizedClientRequest struct {
+	RemoveAuthorizedClientRequest *AuthorizationAPIRemoveAuthorizedClientRequest `protobuf:"bytes,3,opt,name=remove_authorized_client_request,json=removeAuthorizedClientRequest,proto3,oneof"`
+}
+
+type AuthorizationMessages_RemoveAuthorizedClientResponse struct {
+	RemoveAuthorizedClientResponse []byte `protobuf:"bytes,4,opt,name=remove_authorized_client_response,json=removeAuthorizedClientResponse,proto3,oneof"`
+}
+
+type AuthorizationMessages_ListAuthorizedClientsRequest struct {
+	ListAuthorizedClientsRequest []byte `protobuf:"bytes,5,opt,name=list_authorized_clients_request,json=listAuthorizedClientsRequest,proto3,oneof"`
+}
+
+type AuthorizationMessages_ListAuthorizedClientsResponse struct {
+	ListAuthorizedClientsResponse []byte `protobuf:"bytes,6,opt,name=list_authorized_clients_response,json=listAuthorizedClientsResponse,proto3,oneof"`
+}
+
+func (*AuthorizationMessages_AddAuthorizedClientRequest) isAuthorizationMessages_Message() {}
+
+func (*AuthorizationMessages_AddAuthorizedClientResponse) isAuthorizationMessages_Message() {}
+
+func (*AuthorizationMessages_RemoveAuthorizedClientRequest) isAuthorizationMessages_Message() {}
+
+func (*AuthorizationMessages_RemoveAuthorizedClientResponse) isAuthorizationMessages_Message() {}
+
+func (*AuthorizationMessages_ListAuthorizedClientsRequest) isAuthorizationMessages_Message() {}
+
+func (*AuthorizationMessages_ListAuthorizedClientsResponse) isAuthorizationMessages_Message() {}
 
 type GraphQLMessages struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -2153,7 +2299,7 @@ type GraphQLMessages struct {
 
 func (x *GraphQLMessages) Reset() {
 	*x = GraphQLMessages{}
-	mi := &file_api_proto_tesla_proto_msgTypes[25]
+	mi := &file_api_proto_tesla_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2165,7 +2311,7 @@ func (x *GraphQLMessages) String() string {
 func (*GraphQLMessages) ProtoMessage() {}
 
 func (x *GraphQLMessages) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[25]
+	mi := &file_api_proto_tesla_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2178,7 +2324,7 @@ func (x *GraphQLMessages) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GraphQLMessages.ProtoReflect.Descriptor instead.
 func (*GraphQLMessages) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{25}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GraphQLMessages) GetSend() *PayloadQuerySend {
@@ -2212,7 +2358,7 @@ type FileStoreMessages struct {
 
 func (x *FileStoreMessages) Reset() {
 	*x = FileStoreMessages{}
-	mi := &file_api_proto_tesla_proto_msgTypes[26]
+	mi := &file_api_proto_tesla_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2224,7 +2370,7 @@ func (x *FileStoreMessages) String() string {
 func (*FileStoreMessages) ProtoMessage() {}
 
 func (x *FileStoreMessages) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[26]
+	mi := &file_api_proto_tesla_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2237,7 +2383,7 @@ func (x *FileStoreMessages) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreMessages.ProtoReflect.Descriptor instead.
 func (*FileStoreMessages) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{26}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *FileStoreMessages) GetMessage() isFileStoreMessages_Message {
@@ -2354,7 +2500,7 @@ type FileStoreAPIFile struct {
 
 func (x *FileStoreAPIFile) Reset() {
 	*x = FileStoreAPIFile{}
-	mi := &file_api_proto_tesla_proto_msgTypes[27]
+	mi := &file_api_proto_tesla_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2366,7 +2512,7 @@ func (x *FileStoreAPIFile) String() string {
 func (*FileStoreAPIFile) ProtoMessage() {}
 
 func (x *FileStoreAPIFile) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[27]
+	mi := &file_api_proto_tesla_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2379,7 +2525,7 @@ func (x *FileStoreAPIFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreAPIFile.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIFile) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{27}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *FileStoreAPIFile) GetName() string {
@@ -2426,7 +2572,7 @@ type FileStoreAPIReadFileRequest struct {
 
 func (x *FileStoreAPIReadFileRequest) Reset() {
 	*x = FileStoreAPIReadFileRequest{}
-	mi := &file_api_proto_tesla_proto_msgTypes[28]
+	mi := &file_api_proto_tesla_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2438,7 +2584,7 @@ func (x *FileStoreAPIReadFileRequest) String() string {
 func (*FileStoreAPIReadFileRequest) ProtoMessage() {}
 
 func (x *FileStoreAPIReadFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[28]
+	mi := &file_api_proto_tesla_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2451,7 +2597,7 @@ func (x *FileStoreAPIReadFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreAPIReadFileRequest.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIReadFileRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{28}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *FileStoreAPIReadFileRequest) GetDomain() FileStoreAPIDomain {
@@ -2485,7 +2631,7 @@ type FileStoreAPIReadFileResponse struct {
 
 func (x *FileStoreAPIReadFileResponse) Reset() {
 	*x = FileStoreAPIReadFileResponse{}
-	mi := &file_api_proto_tesla_proto_msgTypes[29]
+	mi := &file_api_proto_tesla_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2497,7 +2643,7 @@ func (x *FileStoreAPIReadFileResponse) String() string {
 func (*FileStoreAPIReadFileResponse) ProtoMessage() {}
 
 func (x *FileStoreAPIReadFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[29]
+	mi := &file_api_proto_tesla_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2510,7 +2656,7 @@ func (x *FileStoreAPIReadFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreAPIReadFileResponse.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIReadFileResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{29}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *FileStoreAPIReadFileResponse) GetFile() *FileStoreAPIFile {
@@ -2538,7 +2684,7 @@ type FileStoreAPIUpdateFileRequest struct {
 
 func (x *FileStoreAPIUpdateFileRequest) Reset() {
 	*x = FileStoreAPIUpdateFileRequest{}
-	mi := &file_api_proto_tesla_proto_msgTypes[30]
+	mi := &file_api_proto_tesla_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2550,7 +2696,7 @@ func (x *FileStoreAPIUpdateFileRequest) String() string {
 func (*FileStoreAPIUpdateFileRequest) ProtoMessage() {}
 
 func (x *FileStoreAPIUpdateFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[30]
+	mi := &file_api_proto_tesla_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2563,7 +2709,7 @@ func (x *FileStoreAPIUpdateFileRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreAPIUpdateFileRequest.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIUpdateFileRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{30}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *FileStoreAPIUpdateFileRequest) GetDomain() FileStoreAPIDomain {
@@ -2597,7 +2743,7 @@ type FileStoreAPIUpdateFileResponse struct {
 
 func (x *FileStoreAPIUpdateFileResponse) Reset() {
 	*x = FileStoreAPIUpdateFileResponse{}
-	mi := &file_api_proto_tesla_proto_msgTypes[31]
+	mi := &file_api_proto_tesla_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2609,7 +2755,7 @@ func (x *FileStoreAPIUpdateFileResponse) String() string {
 func (*FileStoreAPIUpdateFileResponse) ProtoMessage() {}
 
 func (x *FileStoreAPIUpdateFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[31]
+	mi := &file_api_proto_tesla_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2622,7 +2768,7 @@ func (x *FileStoreAPIUpdateFileResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FileStoreAPIUpdateFileResponse.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIUpdateFileResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{31}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *FileStoreAPIUpdateFileResponse) GetFile() *FileStoreAPIFile {
@@ -2649,7 +2795,7 @@ type FileStoreAPIForceWriteFileRequest struct {
 
 func (x *FileStoreAPIForceWriteFileRequest) Reset() {
 	*x = FileStoreAPIForceWriteFileRequest{}
-	mi := &file_api_proto_tesla_proto_msgTypes[32]
+	mi := &file_api_proto_tesla_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2661,7 +2807,7 @@ func (x *FileStoreAPIForceWriteFileRequest) String() string {
 func (*FileStoreAPIForceWriteFileRequest) ProtoMessage() {}
 
 func (x *FileStoreAPIForceWriteFileRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[32]
+	mi := &file_api_proto_tesla_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2674,7 +2820,7 @@ func (x *FileStoreAPIForceWriteFileRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use FileStoreAPIForceWriteFileRequest.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIForceWriteFileRequest) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{32}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *FileStoreAPIForceWriteFileRequest) GetDomain() FileStoreAPIDomain {
@@ -2700,7 +2846,7 @@ type FileStoreAPIForceWriteFileResponse struct {
 
 func (x *FileStoreAPIForceWriteFileResponse) Reset() {
 	*x = FileStoreAPIForceWriteFileResponse{}
-	mi := &file_api_proto_tesla_proto_msgTypes[33]
+	mi := &file_api_proto_tesla_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2712,7 +2858,7 @@ func (x *FileStoreAPIForceWriteFileResponse) String() string {
 func (*FileStoreAPIForceWriteFileResponse) ProtoMessage() {}
 
 func (x *FileStoreAPIForceWriteFileResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[33]
+	mi := &file_api_proto_tesla_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2725,7 +2871,7 @@ func (x *FileStoreAPIForceWriteFileResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use FileStoreAPIForceWriteFileResponse.ProtoReflect.Descriptor instead.
 func (*FileStoreAPIForceWriteFileResponse) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{33}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *FileStoreAPIForceWriteFileResponse) GetHash() []byte {
@@ -2745,7 +2891,7 @@ type QueryType struct {
 
 func (x *QueryType) Reset() {
 	*x = QueryType{}
-	mi := &file_api_proto_tesla_proto_msgTypes[34]
+	mi := &file_api_proto_tesla_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2757,7 +2903,7 @@ func (x *QueryType) String() string {
 func (*QueryType) ProtoMessage() {}
 
 func (x *QueryType) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[34]
+	mi := &file_api_proto_tesla_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2770,7 +2916,7 @@ func (x *QueryType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use QueryType.ProtoReflect.Descriptor instead.
 func (*QueryType) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{34}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *QueryType) GetSend() *PayloadQuerySend {
@@ -2799,7 +2945,7 @@ type PayloadQuerySend struct {
 
 func (x *PayloadQuerySend) Reset() {
 	*x = PayloadQuerySend{}
-	mi := &file_api_proto_tesla_proto_msgTypes[35]
+	mi := &file_api_proto_tesla_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2811,7 +2957,7 @@ func (x *PayloadQuerySend) String() string {
 func (*PayloadQuerySend) ProtoMessage() {}
 
 func (x *PayloadQuerySend) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[35]
+	mi := &file_api_proto_tesla_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2824,7 +2970,7 @@ func (x *PayloadQuerySend) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PayloadQuerySend.ProtoReflect.Descriptor instead.
 func (*PayloadQuerySend) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{35}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *PayloadQuerySend) GetRequestFormat() Format {
@@ -2865,7 +3011,7 @@ type PayloadString struct {
 
 func (x *PayloadString) Reset() {
 	*x = PayloadString{}
-	mi := &file_api_proto_tesla_proto_msgTypes[36]
+	mi := &file_api_proto_tesla_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2877,7 +3023,7 @@ func (x *PayloadString) String() string {
 func (*PayloadString) ProtoMessage() {}
 
 func (x *PayloadString) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[36]
+	mi := &file_api_proto_tesla_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2890,7 +3036,7 @@ func (x *PayloadString) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PayloadString.ProtoReflect.Descriptor instead.
 func (*PayloadString) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{36}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *PayloadString) GetValue() int32 {
@@ -2916,7 +3062,7 @@ type StringValue struct {
 
 func (x *StringValue) Reset() {
 	*x = StringValue{}
-	mi := &file_api_proto_tesla_proto_msgTypes[37]
+	mi := &file_api_proto_tesla_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2928,7 +3074,7 @@ func (x *StringValue) String() string {
 func (*StringValue) ProtoMessage() {}
 
 func (x *StringValue) ProtoReflect() protoreflect.Message {
-	mi := &file_api_proto_tesla_proto_msgTypes[37]
+	mi := &file_api_proto_tesla_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2941,7 +3087,7 @@ func (x *StringValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringValue.ProtoReflect.Descriptor instead.
 func (*StringValue) Descriptor() ([]byte, []int) {
-	return file_api_proto_tesla_proto_rawDescGZIP(), []int{37}
+	return file_api_proto_tesla_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *StringValue) GetValue() string {
@@ -3048,9 +3194,18 @@ const file_api_proto_tesla_proto_rawDesc = "" +
 	"\x13NeurioMeterMessages\x12 \n" +
 	"\vplaceholder\x18\x01 \x01(\fR\vplaceholder\"9\n" +
 	"\x15EnergySiteNetMessages\x12 \n" +
-	"\vplaceholder\x18\x01 \x01(\fR\vplaceholder\"9\n" +
-	"\x15AuthorizationMessages\x12 \n" +
-	"\vplaceholder\x18\x01 \x01(\fR\vplaceholder\"\x86\x01\n" +
+	"\vplaceholder\x18\x01 \x01(\fR\vplaceholder\"N\n" +
+	"-AuthorizationAPIRemoveAuthorizedClientRequest\x12\x1d\n" +
+	"\n" +
+	"public_key\x18\x01 \x01(\fR\tpublicKey\"\x92\x04\n" +
+	"\x15AuthorizationMessages\x12C\n" +
+	"\x1dadd_authorized_client_request\x18\x01 \x01(\fH\x00R\x1aaddAuthorizedClientRequest\x12E\n" +
+	"\x1eadd_authorized_client_response\x18\x02 \x01(\fH\x00R\x1baddAuthorizedClientResponse\x12\x80\x01\n" +
+	" remove_authorized_client_request\x18\x03 \x01(\v25.tedapi.AuthorizationAPIRemoveAuthorizedClientRequestH\x00R\x1dremoveAuthorizedClientRequest\x12K\n" +
+	"!remove_authorized_client_response\x18\x04 \x01(\fH\x00R\x1eremoveAuthorizedClientResponse\x12G\n" +
+	"\x1flist_authorized_clients_request\x18\x05 \x01(\fH\x00R\x1clistAuthorizedClientsRequest\x12I\n" +
+	" list_authorized_clients_response\x18\x06 \x01(\fH\x00R\x1dlistAuthorizedClientsResponseB\t\n" +
+	"\amessage\"\x86\x01\n" +
 	"\x0fGraphQLMessages\x121\n" +
 	"\x04send\x18\x01 \x01(\v2\x18.tedapi.PayloadQuerySendH\x00R\x04send\x88\x01\x01\x12.\n" +
 	"\x04recv\x18\x02 \x01(\v2\x15.tedapi.PayloadStringH\x01R\x04recv\x88\x01\x01B\a\n" +
@@ -3189,55 +3344,56 @@ func file_api_proto_tesla_proto_rawDescGZIP() []byte {
 }
 
 var file_api_proto_tesla_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
-var file_api_proto_tesla_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_api_proto_tesla_proto_msgTypes = make([]protoimpl.MessageInfo, 39)
 var file_api_proto_tesla_proto_goTypes = []any{
-	(Domain)(0),                                     // 0: tedapi.Domain
-	(SignatureType)(0),                              // 1: tedapi.SignatureType
-	(OperationStatus_E)(0),                          // 2: tedapi.OperationStatus_E
-	(MessageFault_E)(0),                             // 3: tedapi.MessageFault_E
-	(Flags)(0),                                      // 4: tedapi.Flags
-	(DeliveryChannel)(0),                            // 5: tedapi.DeliveryChannel
-	(Format)(0),                                     // 6: tedapi.Format
-	(FileStoreAPIDomain)(0),                         // 7: tedapi.FileStoreAPIDomain
-	(*SignedMessage)(nil),                           // 8: tedapi.SignedMessage
-	(*ParentMessage)(nil),                           // 9: tedapi.ParentMessage
-	(*MessageStatus)(nil),                           // 10: tedapi.MessageStatus
-	(*Destination)(nil),                             // 11: tedapi.Destination
-	(*KeyIdentity)(nil),                             // 12: tedapi.KeyIdentity
-	(*RsaSignatureData)(nil),                        // 13: tedapi.RsaSignatureData
-	(*SignatureData)(nil),                           // 14: tedapi.SignatureData
-	(*MessageEnvelope)(nil),                         // 15: tedapi.MessageEnvelope
-	(*Participant)(nil),                             // 16: tedapi.Participant
-	(*Tail)(nil),                                    // 17: tedapi.Tail
-	(*CommonMessages)(nil),                          // 18: tedapi.CommonMessages
-	(*ControlEventSchedulingInfo)(nil),              // 19: tedapi.ControlEventSchedulingInfo
-	(*TEGAPIScheduleManualBackupEventRequest)(nil),  // 20: tedapi.TEGAPIScheduleManualBackupEventRequest
-	(*TEGAPIScheduleManualBackupEventResponse)(nil), // 21: tedapi.TEGAPIScheduleManualBackupEventResponse
-	(*TEGAPICancelManualBackupEventRequest)(nil),    // 22: tedapi.TEGAPICancelManualBackupEventRequest
-	(*TEGAPICancelManualBackupEventResponse)(nil),   // 23: tedapi.TEGAPICancelManualBackupEventResponse
-	(*TEGAPIGetBackupEventsRequest)(nil),            // 24: tedapi.TEGAPIGetBackupEventsRequest
-	(*TEGAPIGetBackupEventsResponse)(nil),           // 25: tedapi.TEGAPIGetBackupEventsResponse
-	(*ManualBackupEvent)(nil),                       // 26: tedapi.ManualBackupEvent
-	(*BackupEvent)(nil),                             // 27: tedapi.BackupEvent
-	(*TEGMessages)(nil),                             // 28: tedapi.TEGMessages
-	(*WCMessages)(nil),                              // 29: tedapi.WCMessages
-	(*NeurioMeterMessages)(nil),                     // 30: tedapi.NeurioMeterMessages
-	(*EnergySiteNetMessages)(nil),                   // 31: tedapi.EnergySiteNetMessages
-	(*AuthorizationMessages)(nil),                   // 32: tedapi.AuthorizationMessages
-	(*GraphQLMessages)(nil),                         // 33: tedapi.GraphQLMessages
-	(*FileStoreMessages)(nil),                       // 34: tedapi.FileStoreMessages
-	(*FileStoreAPIFile)(nil),                        // 35: tedapi.FileStoreAPIFile
-	(*FileStoreAPIReadFileRequest)(nil),             // 36: tedapi.FileStoreAPIReadFileRequest
-	(*FileStoreAPIReadFileResponse)(nil),            // 37: tedapi.FileStoreAPIReadFileResponse
-	(*FileStoreAPIUpdateFileRequest)(nil),           // 38: tedapi.FileStoreAPIUpdateFileRequest
-	(*FileStoreAPIUpdateFileResponse)(nil),          // 39: tedapi.FileStoreAPIUpdateFileResponse
-	(*FileStoreAPIForceWriteFileRequest)(nil),       // 40: tedapi.FileStoreAPIForceWriteFileRequest
-	(*FileStoreAPIForceWriteFileResponse)(nil),      // 41: tedapi.FileStoreAPIForceWriteFileResponse
-	(*QueryType)(nil),                               // 42: tedapi.QueryType
-	(*PayloadQuerySend)(nil),                        // 43: tedapi.PayloadQuerySend
-	(*PayloadString)(nil),                           // 44: tedapi.PayloadString
-	(*StringValue)(nil),                             // 45: tedapi.StringValue
-	(*timestamppb.Timestamp)(nil),                   // 46: google.protobuf.Timestamp
+	(Domain)(0),                                           // 0: tedapi.Domain
+	(SignatureType)(0),                                    // 1: tedapi.SignatureType
+	(OperationStatus_E)(0),                                // 2: tedapi.OperationStatus_E
+	(MessageFault_E)(0),                                   // 3: tedapi.MessageFault_E
+	(Flags)(0),                                            // 4: tedapi.Flags
+	(DeliveryChannel)(0),                                  // 5: tedapi.DeliveryChannel
+	(Format)(0),                                           // 6: tedapi.Format
+	(FileStoreAPIDomain)(0),                               // 7: tedapi.FileStoreAPIDomain
+	(*SignedMessage)(nil),                                 // 8: tedapi.SignedMessage
+	(*ParentMessage)(nil),                                 // 9: tedapi.ParentMessage
+	(*MessageStatus)(nil),                                 // 10: tedapi.MessageStatus
+	(*Destination)(nil),                                   // 11: tedapi.Destination
+	(*KeyIdentity)(nil),                                   // 12: tedapi.KeyIdentity
+	(*RsaSignatureData)(nil),                              // 13: tedapi.RsaSignatureData
+	(*SignatureData)(nil),                                 // 14: tedapi.SignatureData
+	(*MessageEnvelope)(nil),                               // 15: tedapi.MessageEnvelope
+	(*Participant)(nil),                                   // 16: tedapi.Participant
+	(*Tail)(nil),                                          // 17: tedapi.Tail
+	(*CommonMessages)(nil),                                // 18: tedapi.CommonMessages
+	(*ControlEventSchedulingInfo)(nil),                    // 19: tedapi.ControlEventSchedulingInfo
+	(*TEGAPIScheduleManualBackupEventRequest)(nil),        // 20: tedapi.TEGAPIScheduleManualBackupEventRequest
+	(*TEGAPIScheduleManualBackupEventResponse)(nil),       // 21: tedapi.TEGAPIScheduleManualBackupEventResponse
+	(*TEGAPICancelManualBackupEventRequest)(nil),          // 22: tedapi.TEGAPICancelManualBackupEventRequest
+	(*TEGAPICancelManualBackupEventResponse)(nil),         // 23: tedapi.TEGAPICancelManualBackupEventResponse
+	(*TEGAPIGetBackupEventsRequest)(nil),                  // 24: tedapi.TEGAPIGetBackupEventsRequest
+	(*TEGAPIGetBackupEventsResponse)(nil),                 // 25: tedapi.TEGAPIGetBackupEventsResponse
+	(*ManualBackupEvent)(nil),                             // 26: tedapi.ManualBackupEvent
+	(*BackupEvent)(nil),                                   // 27: tedapi.BackupEvent
+	(*TEGMessages)(nil),                                   // 28: tedapi.TEGMessages
+	(*WCMessages)(nil),                                    // 29: tedapi.WCMessages
+	(*NeurioMeterMessages)(nil),                           // 30: tedapi.NeurioMeterMessages
+	(*EnergySiteNetMessages)(nil),                         // 31: tedapi.EnergySiteNetMessages
+	(*AuthorizationAPIRemoveAuthorizedClientRequest)(nil), // 32: tedapi.AuthorizationAPIRemoveAuthorizedClientRequest
+	(*AuthorizationMessages)(nil),                         // 33: tedapi.AuthorizationMessages
+	(*GraphQLMessages)(nil),                               // 34: tedapi.GraphQLMessages
+	(*FileStoreMessages)(nil),                             // 35: tedapi.FileStoreMessages
+	(*FileStoreAPIFile)(nil),                              // 36: tedapi.FileStoreAPIFile
+	(*FileStoreAPIReadFileRequest)(nil),                   // 37: tedapi.FileStoreAPIReadFileRequest
+	(*FileStoreAPIReadFileResponse)(nil),                  // 38: tedapi.FileStoreAPIReadFileResponse
+	(*FileStoreAPIUpdateFileRequest)(nil),                 // 39: tedapi.FileStoreAPIUpdateFileRequest
+	(*FileStoreAPIUpdateFileResponse)(nil),                // 40: tedapi.FileStoreAPIUpdateFileResponse
+	(*FileStoreAPIForceWriteFileRequest)(nil),             // 41: tedapi.FileStoreAPIForceWriteFileRequest
+	(*FileStoreAPIForceWriteFileResponse)(nil),            // 42: tedapi.FileStoreAPIForceWriteFileResponse
+	(*QueryType)(nil),                                     // 43: tedapi.QueryType
+	(*PayloadQuerySend)(nil),                              // 44: tedapi.PayloadQuerySend
+	(*PayloadString)(nil),                                 // 45: tedapi.PayloadString
+	(*StringValue)(nil),                                   // 46: tedapi.StringValue
+	(*timestamppb.Timestamp)(nil),                         // 47: google.protobuf.Timestamp
 }
 var file_api_proto_tesla_proto_depIdxs = []int32{
 	11, // 0: tedapi.SignedMessage.to_destination:type_name -> tedapi.Destination
@@ -3260,10 +3416,10 @@ var file_api_proto_tesla_proto_depIdxs = []int32{
 	29, // 17: tedapi.MessageEnvelope.wc:type_name -> tedapi.WCMessages
 	30, // 18: tedapi.MessageEnvelope.neuriometer:type_name -> tedapi.NeurioMeterMessages
 	31, // 19: tedapi.MessageEnvelope.energysitenet:type_name -> tedapi.EnergySiteNetMessages
-	32, // 20: tedapi.MessageEnvelope.authorization:type_name -> tedapi.AuthorizationMessages
-	34, // 21: tedapi.MessageEnvelope.filestore:type_name -> tedapi.FileStoreMessages
-	33, // 22: tedapi.MessageEnvelope.graphql:type_name -> tedapi.GraphQLMessages
-	46, // 23: tedapi.ControlEventSchedulingInfo.start_time:type_name -> google.protobuf.Timestamp
+	33, // 20: tedapi.MessageEnvelope.authorization:type_name -> tedapi.AuthorizationMessages
+	35, // 21: tedapi.MessageEnvelope.filestore:type_name -> tedapi.FileStoreMessages
+	34, // 22: tedapi.MessageEnvelope.graphql:type_name -> tedapi.GraphQLMessages
+	47, // 23: tedapi.ControlEventSchedulingInfo.start_time:type_name -> google.protobuf.Timestamp
 	19, // 24: tedapi.TEGAPIScheduleManualBackupEventRequest.scheduling_info:type_name -> tedapi.ControlEventSchedulingInfo
 	26, // 25: tedapi.TEGAPIGetBackupEventsResponse.manual_backup_event:type_name -> tedapi.ManualBackupEvent
 	27, // 26: tedapi.TEGAPIGetBackupEventsResponse.backup_events:type_name -> tedapi.BackupEvent
@@ -3275,31 +3431,32 @@ var file_api_proto_tesla_proto_depIdxs = []int32{
 	23, // 32: tedapi.TEGMessages.cancel_manual_backup_event_response:type_name -> tedapi.TEGAPICancelManualBackupEventResponse
 	24, // 33: tedapi.TEGMessages.get_backup_events_request:type_name -> tedapi.TEGAPIGetBackupEventsRequest
 	25, // 34: tedapi.TEGMessages.get_backup_events_response:type_name -> tedapi.TEGAPIGetBackupEventsResponse
-	43, // 35: tedapi.GraphQLMessages.send:type_name -> tedapi.PayloadQuerySend
-	44, // 36: tedapi.GraphQLMessages.recv:type_name -> tedapi.PayloadString
-	36, // 37: tedapi.FileStoreMessages.readFileRequest:type_name -> tedapi.FileStoreAPIReadFileRequest
-	37, // 38: tedapi.FileStoreMessages.readFileResponse:type_name -> tedapi.FileStoreAPIReadFileResponse
-	40, // 39: tedapi.FileStoreMessages.forceWriteFileRequest:type_name -> tedapi.FileStoreAPIForceWriteFileRequest
-	41, // 40: tedapi.FileStoreMessages.forceWriteFileResponse:type_name -> tedapi.FileStoreAPIForceWriteFileResponse
-	38, // 41: tedapi.FileStoreMessages.updateFileRequest:type_name -> tedapi.FileStoreAPIUpdateFileRequest
-	39, // 42: tedapi.FileStoreMessages.updateFileResponse:type_name -> tedapi.FileStoreAPIUpdateFileResponse
-	7,  // 43: tedapi.FileStoreAPIReadFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
-	35, // 44: tedapi.FileStoreAPIReadFileResponse.file:type_name -> tedapi.FileStoreAPIFile
-	7,  // 45: tedapi.FileStoreAPIUpdateFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
-	35, // 46: tedapi.FileStoreAPIUpdateFileRequest.file:type_name -> tedapi.FileStoreAPIFile
-	35, // 47: tedapi.FileStoreAPIUpdateFileResponse.file:type_name -> tedapi.FileStoreAPIFile
-	7,  // 48: tedapi.FileStoreAPIForceWriteFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
-	35, // 49: tedapi.FileStoreAPIForceWriteFileRequest.file:type_name -> tedapi.FileStoreAPIFile
-	43, // 50: tedapi.QueryType.send:type_name -> tedapi.PayloadQuerySend
-	44, // 51: tedapi.QueryType.recv:type_name -> tedapi.PayloadString
-	6,  // 52: tedapi.PayloadQuerySend.requestFormat:type_name -> tedapi.Format
-	44, // 53: tedapi.PayloadQuerySend.payload:type_name -> tedapi.PayloadString
-	45, // 54: tedapi.PayloadQuerySend.body:type_name -> tedapi.StringValue
-	55, // [55:55] is the sub-list for method output_type
-	55, // [55:55] is the sub-list for method input_type
-	55, // [55:55] is the sub-list for extension type_name
-	55, // [55:55] is the sub-list for extension extendee
-	0,  // [0:55] is the sub-list for field type_name
+	32, // 35: tedapi.AuthorizationMessages.remove_authorized_client_request:type_name -> tedapi.AuthorizationAPIRemoveAuthorizedClientRequest
+	44, // 36: tedapi.GraphQLMessages.send:type_name -> tedapi.PayloadQuerySend
+	45, // 37: tedapi.GraphQLMessages.recv:type_name -> tedapi.PayloadString
+	37, // 38: tedapi.FileStoreMessages.readFileRequest:type_name -> tedapi.FileStoreAPIReadFileRequest
+	38, // 39: tedapi.FileStoreMessages.readFileResponse:type_name -> tedapi.FileStoreAPIReadFileResponse
+	41, // 40: tedapi.FileStoreMessages.forceWriteFileRequest:type_name -> tedapi.FileStoreAPIForceWriteFileRequest
+	42, // 41: tedapi.FileStoreMessages.forceWriteFileResponse:type_name -> tedapi.FileStoreAPIForceWriteFileResponse
+	39, // 42: tedapi.FileStoreMessages.updateFileRequest:type_name -> tedapi.FileStoreAPIUpdateFileRequest
+	40, // 43: tedapi.FileStoreMessages.updateFileResponse:type_name -> tedapi.FileStoreAPIUpdateFileResponse
+	7,  // 44: tedapi.FileStoreAPIReadFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
+	36, // 45: tedapi.FileStoreAPIReadFileResponse.file:type_name -> tedapi.FileStoreAPIFile
+	7,  // 46: tedapi.FileStoreAPIUpdateFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
+	36, // 47: tedapi.FileStoreAPIUpdateFileRequest.file:type_name -> tedapi.FileStoreAPIFile
+	36, // 48: tedapi.FileStoreAPIUpdateFileResponse.file:type_name -> tedapi.FileStoreAPIFile
+	7,  // 49: tedapi.FileStoreAPIForceWriteFileRequest.domain:type_name -> tedapi.FileStoreAPIDomain
+	36, // 50: tedapi.FileStoreAPIForceWriteFileRequest.file:type_name -> tedapi.FileStoreAPIFile
+	44, // 51: tedapi.QueryType.send:type_name -> tedapi.PayloadQuerySend
+	45, // 52: tedapi.QueryType.recv:type_name -> tedapi.PayloadString
+	6,  // 53: tedapi.PayloadQuerySend.requestFormat:type_name -> tedapi.Format
+	45, // 54: tedapi.PayloadQuerySend.payload:type_name -> tedapi.PayloadString
+	46, // 55: tedapi.PayloadQuerySend.body:type_name -> tedapi.StringValue
+	56, // [56:56] is the sub-list for method output_type
+	56, // [56:56] is the sub-list for method input_type
+	56, // [56:56] is the sub-list for extension type_name
+	56, // [56:56] is the sub-list for extension extendee
+	0,  // [0:56] is the sub-list for field type_name
 }
 
 func init() { file_api_proto_tesla_proto_init() }
@@ -3342,8 +3499,16 @@ func file_api_proto_tesla_proto_init() {
 		(*TEGMessages_GetBackupEventsRequest)(nil),
 		(*TEGMessages_GetBackupEventsResponse)(nil),
 	}
-	file_api_proto_tesla_proto_msgTypes[25].OneofWrappers = []any{}
-	file_api_proto_tesla_proto_msgTypes[26].OneofWrappers = []any{
+	file_api_proto_tesla_proto_msgTypes[25].OneofWrappers = []any{
+		(*AuthorizationMessages_AddAuthorizedClientRequest)(nil),
+		(*AuthorizationMessages_AddAuthorizedClientResponse)(nil),
+		(*AuthorizationMessages_RemoveAuthorizedClientRequest)(nil),
+		(*AuthorizationMessages_RemoveAuthorizedClientResponse)(nil),
+		(*AuthorizationMessages_ListAuthorizedClientsRequest)(nil),
+		(*AuthorizationMessages_ListAuthorizedClientsResponse)(nil),
+	}
+	file_api_proto_tesla_proto_msgTypes[26].OneofWrappers = []any{}
+	file_api_proto_tesla_proto_msgTypes[27].OneofWrappers = []any{
 		(*FileStoreMessages_ReadFileRequest)(nil),
 		(*FileStoreMessages_ReadFileResponse)(nil),
 		(*FileStoreMessages_ForceWriteFileRequest)(nil),
@@ -3351,18 +3516,18 @@ func file_api_proto_tesla_proto_init() {
 		(*FileStoreMessages_UpdateFileRequest)(nil),
 		(*FileStoreMessages_UpdateFileResponse)(nil),
 	}
-	file_api_proto_tesla_proto_msgTypes[27].OneofWrappers = []any{
+	file_api_proto_tesla_proto_msgTypes[28].OneofWrappers = []any{
 		(*FileStoreAPIFile_Blob)(nil),
 	}
-	file_api_proto_tesla_proto_msgTypes[34].OneofWrappers = []any{}
 	file_api_proto_tesla_proto_msgTypes[35].OneofWrappers = []any{}
+	file_api_proto_tesla_proto_msgTypes[36].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_api_proto_tesla_proto_rawDesc), len(file_api_proto_tesla_proto_rawDesc)),
 			NumEnums:      8,
-			NumMessages:   38,
+			NumMessages:   39,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
