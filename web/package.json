@@ -24,7 +24,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-icons": "^5.5.0",
-    "react-router-dom": "^7.12.0",
+    "react-router-dom": "^7.16.0",
     "recharts": "^3.6.0",
     "shiki": "^3.21.0",
     "uplot": "^1.6.32",
