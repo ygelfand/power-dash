@@ -81,4 +81,3 @@ Example:
 	cmd.Flags().StringVar(&keyPath, "key-path", "", "RSA private key to sign the request (defaults to config key-path)")
 	return cmd
 }
-

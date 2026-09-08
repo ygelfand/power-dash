@@ -95,4 +95,3 @@ func LoadRSAPrivateKey(path string) (*rsa.PrivateKey, error) {
 	}
 	return key, nil
 }
-
